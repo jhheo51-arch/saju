@@ -95,3 +95,19 @@ test("불필요한 개인정보와 클라이언트 계산값을 무시한다", (
   assert.equal("email" in input, false);
   assert.equal("chart" in input, false);
 });
+
+test("돈 주제를 선택해도 입력을 받아들인다", () => {
+  const input = validateInput({ ...base, topic: "money" });
+  assert.equal(input.topic, "money");
+});
+
+test("선택 질문의 공백은 빈 질문으로 정리한다", () => {
+  const input = validateInput({ ...base, question: "  \n  " });
+  assert.equal(input.question, "");
+});
+
+test("선택 질문은 앞뒤 공백을 정리한 뒤 200자까지 받는다", () => {
+  const question = "가".repeat(200);
+  const input = validateInput({ ...base, question: `  ${question}  ` });
+  assert.equal(input.question, question);
+});

@@ -1,4 +1,5 @@
 import lunar from "lunar-javascript";
+import { isReadingTopic, type ReadingTopic } from "./topics";
 
 const { Solar } = lunar;
 
@@ -6,7 +7,7 @@ export type SajuInput = {
   date: string;
   time: string;
   calendar: "solar";
-  topic: "general" | "career" | "relationship";
+  topic: "general" | ReadingTopic;
   question?: string;
   unknownTime?: boolean;
 };
@@ -119,7 +120,7 @@ export function validateInput(raw: SajuInput): SajuInput {
     !/^([01]\d|2[0-3]):[0-5]\d$/.test(raw.time)
   )
     throw new InputError("태어난 시각을 정확히 입력해주세요.", "time");
-  if (!["general", "career", "relationship"].includes(raw.topic))
+  if (raw.topic !== "general" && !isReadingTopic(raw.topic))
     throw new InputError("풀이 주제를 선택해주세요.", "topic");
   if (raw.question !== undefined && typeof raw.question !== "string")
     throw new InputError("질문은 글자로 입력해주세요.", "question");

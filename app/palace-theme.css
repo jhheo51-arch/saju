@@ -1,0 +1,242 @@
+/* 이전 청록·적갈·금색 테마. 화면 구조와 글꼴은 유지합니다. */
+:root {
+  --background: #eee8da;
+  --surface: #fffcf4;
+  --text: #252b29;
+  --muted: #555f59;
+  --border: #c8bea8;
+  --focus: #126e78;
+  --primary: #285d56;
+  --soft: #e8efe7;
+  --error: #a51d35;
+  --palace-red: #793638;
+  --palace-seokganju: #5d2728;
+  --palace-blue: #126e78;
+  --palace-noerok: #285d56;
+  --palace-yellow: #bb9960;
+  --palace-black: #252b29;
+  --palace-white: #fffcf4;
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 4%, color-mix(in srgb, var(--palace-yellow) 14%, transparent), transparent 28rem),
+    radial-gradient(circle at 92% 72%, color-mix(in srgb, var(--palace-noerok) 8%, transparent), transparent 30rem),
+    var(--background);
+}
+
+main {
+  width: min(100%, 980px);
+}
+
+.page-header {
+  padding: 60px 56px 64px;
+  border: 1px solid #225e53;
+  border-top: 5px solid var(--palace-yellow);
+  border-radius: 18px;
+  color: var(--palace-white);
+  background: linear-gradient(145deg, #173e39, #285d54);
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--palace-black) 12%, transparent);
+}
+
+.page-header .eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #f3d99c;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+}
+
+.page-header .eyebrow::before,
+.page-header .eyebrow::after {
+  width: 36px;
+  height: 1px;
+  background: var(--palace-yellow);
+  content: "";
+}
+
+.page-header h1 {
+  margin-top: 16px;
+  color: var(--palace-white);
+  font-family: "Noto Serif KR", "Nanum Myeongjo", "Batang", Georgia, serif;
+  font-size: clamp(40px, 5.2vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  text-shadow: 0 2px 10px color-mix(in srgb, var(--palace-black) 22%, transparent);
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.page-header .intro {
+  max-width: none;
+  margin-top: 22px;
+  color: var(--palace-white);
+  font-size: 17px;
+  white-space: nowrap;
+}
+
+.account-card,
+.input-card,
+.preview {
+  border-color: var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--palace-black) 9%, transparent);
+}
+
+.account-card {
+  margin-top: 22px;
+  border-left: 5px solid var(--palace-yellow);
+}
+
+.input-card,
+.preview {
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--palace-red);
+}
+
+.section-step {
+  border: 1px solid var(--palace-red);
+  border-radius: 50%;
+  color: var(--palace-white);
+  background: var(--palace-red);
+  font-family: Georgia, serif;
+}
+
+.section-heading h2,
+.preview-header h2,
+.preview-card h3,
+.answer-card h3,
+.avatar-details h3 {
+  color: var(--palace-black);
+  font-family: "Noto Serif KR", "Nanum Myeongjo", "Batang", Georgia, serif;
+}
+
+input:not([type="radio"]),
+textarea {
+  border-color: var(--border);
+  border-radius: 8px;
+  background: var(--palace-white);
+}
+
+.topic-option span {
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--palace-yellow) 7%, var(--palace-white));
+}
+
+.topic-option:hover span,
+.topic-option input:checked + span {
+  border-color: var(--palace-noerok);
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--palace-noerok);
+}
+
+button:not(.term-trigger) {
+  border-color: var(--palace-red);
+  border-radius: 8px;
+  color: var(--palace-white);
+  background: var(--palace-red);
+}
+
+button:not(.term-trigger):hover {
+  background: var(--palace-seokganju);
+}
+
+.account-card .account-button.secondary,
+.delete-button {
+  border-color: var(--palace-red);
+  color: var(--palace-red);
+  background: var(--palace-white);
+}
+
+.account-card .account-button.secondary:hover,
+.delete-button:hover {
+  color: var(--palace-white);
+  background: var(--palace-red);
+}
+
+.preview-card {
+  border-top: 3px solid var(--palace-yellow);
+  border-radius: 2px;
+  background: var(--palace-white);
+}
+
+.avatar-card {
+  border-color: var(--border);
+  border-top: 3px solid var(--palace-yellow);
+  border-radius: 2px;
+  background: var(--palace-white);
+}
+
+.preview-card:nth-child(2) {
+  border-top-color: var(--palace-noerok);
+}
+
+.preview-card:nth-child(3),
+.today-cards .preview-card {
+  border-top-color: var(--palace-seokganju);
+}
+
+.answer-card,
+.notice,
+.date-note {
+  border-color: var(--border);
+  background: var(--soft);
+}
+
+.raw-chart {
+  border-top-color: var(--border);
+}
+
+.pillars > div {
+  border-color: var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--palace-yellow) 7%, var(--palace-white));
+}
+
+.term-trigger,
+.raw-chart summary {
+  color: var(--palace-noerok);
+}
+
+.term-popover {
+  border-color: var(--border);
+  background: var(--palace-white);
+}
+
+@media (max-width: 900px) {
+  .page-header .intro {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 680px) {
+  .page-header {
+    padding: 48px 24px 52px;
+    border-top-width: 4px;
+    border-radius: 14px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(32px, 9vw, 44px);
+  }
+
+  .page-header .eyebrow {
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    white-space: nowrap;
+  }
+
+  .page-header .eyebrow::before,
+  .page-header .eyebrow::after {
+    width: 20px;
+  }
+
+  .input-card,
+  .preview {
+    border-radius: 12px;
+  }
+}

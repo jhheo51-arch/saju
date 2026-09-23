@@ -1,0 +1,130 @@
+/* 이전 청록·적갈·금색과 현재 글꼴을 유지하고, 화면 모양만 부드럽게 연결합니다. */
+:root {
+  --cute-cream: color-mix(in srgb, var(--palace-yellow) 9%, var(--palace-white));
+  --cute-mint: color-mix(in srgb, var(--palace-noerok) 8%, var(--palace-white));
+  --cute-pink: color-mix(in srgb, var(--palace-red) 6%, var(--palace-white));
+  --cute-shadow: color-mix(in srgb, var(--palace-black) 9%, transparent);
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 9%, color-mix(in srgb, var(--palace-yellow) 16%, transparent), transparent 24rem),
+    radial-gradient(circle at 90% 70%, color-mix(in srgb, var(--palace-noerok) 9%, transparent), transparent 27rem),
+    var(--cute-cream);
+}
+
+.page-header {
+  border-radius: 32px;
+  box-shadow: 0 9px 0 color-mix(in srgb, var(--palace-noerok) 16%, transparent),
+    0 22px 36px var(--cute-shadow);
+}
+
+.account-card,
+.input-card,
+.preview {
+  border-radius: 28px;
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--palace-noerok) 7%, transparent),
+    0 17px 34px var(--cute-shadow);
+}
+
+.account-card {
+  border-left-width: 6px;
+}
+
+.section-step {
+  border-radius: 15px;
+  font-family: inherit;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--palace-red) 22%, transparent);
+}
+
+input:not([type="radio"]),
+textarea {
+  border-radius: 15px;
+}
+
+.topic-option span {
+  border-radius: 18px;
+  background: var(--cute-cream);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--palace-noerok) 10%, transparent);
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.topic-option:hover span {
+  transform: translateY(-2px);
+}
+
+.topic-option input:checked + span {
+  border-width: 2px;
+  background: var(--cute-mint);
+  box-shadow: inset 0 0 0 1px var(--palace-noerok),
+    0 4px 0 color-mix(in srgb, var(--palace-noerok) 20%, transparent);
+}
+
+button:not(.term-trigger) {
+  border-radius: 15px;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--palace-red) 22%, transparent);
+}
+
+button:not(.term-trigger):active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--palace-red) 22%, transparent);
+}
+
+.notice,
+.date-note,
+.error,
+.chart-basis,
+.answer-card,
+.question-preview {
+  border-radius: 18px;
+}
+
+.notice,
+.date-note {
+  background: var(--cute-mint);
+}
+
+.preview-card,
+.preview .avatar-card {
+  border-radius: 22px;
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--palace-black) 6%, transparent);
+}
+
+.preview-card:nth-child(odd) {
+  background: var(--cute-cream);
+}
+
+.preview-card:nth-child(even) {
+  background: var(--cute-mint);
+}
+
+.avatar-facts div {
+  background: var(--cute-cream);
+}
+
+.avatar-facts div:nth-child(even) {
+  background: var(--cute-mint);
+}
+
+.pillars > div,
+.term-popover {
+  border-radius: 18px;
+}
+
+.pillars > div {
+  background: var(--cute-pink);
+}
+
+@media (max-width: 680px) {
+  .page-header,
+  .account-card,
+  .input-card,
+  .preview {
+    border-radius: 22px;
+  }
+
+  .preview-card,
+  .preview .avatar-card {
+    border-radius: 18px;
+  }
+}
