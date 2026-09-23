@@ -1,0 +1,212 @@
+:root {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --muted: #515154;
+  --border: #e0e0e0;
+  --focus: #0071e3;
+  --primary: #0066cc;
+  --soft: #f5f5f7;
+  --error: #b91c1c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 64px 24px;
+  color: var(--text);
+  background: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", system-ui, sans-serif;
+}
+
+main {
+  width: min(100%, 720px);
+  margin: 0 auto;
+}
+
+.page-header {
+  padding: 48px 24px 56px;
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(40px, 7vw, 56px);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  margin: 8px 0 12px;
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -0.04em;
+}
+
+.intro,
+.note {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.intro {
+  max-width: 520px;
+  margin: 24px 0 0;
+  margin-right: auto;
+  margin-left: auto;
+  font-size: 19px;
+}
+
+.input-card {
+  margin: 0;
+  padding: 40px;
+  border-radius: 24px;
+  background: var(--soft);
+}
+
+.form-intro {
+  margin: 0 0 28px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+form {
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+input,
+button {
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font: inherit;
+}
+
+input {
+  padding: 10px 12px;
+  background: var(--surface);
+}
+
+button {
+  min-height: 56px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  color: var(--surface);
+  border-color: var(--primary);
+  background: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 140ms ease;
+}
+
+button:hover {
+  opacity: 0.82;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.feedback:empty {
+  display: none;
+}
+
+.error {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.result {
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.result-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.day-pillar {
+  margin-top: 4px;
+  font-size: 36px;
+  font-weight: 600;
+}
+
+.day-master {
+  margin: -4px 0 24px;
+  color: var(--muted);
+}
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 0;
+}
+
+.pillars div {
+  padding: 16px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.pillars dt {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pillars dd {
+  margin: 8px 0 0;
+  font-family: serif;
+  font-size: 24px;
+}
+
+.note {
+  font-size: 14px;
+}
+
+@media (max-width: 520px) {
+  body {
+    padding: 16px;
+  }
+
+  .page-header {
+    padding: 40px 8px;
+  }
+
+  .input-card {
+    padding: 28px 20px;
+  }
+
+  .pillars {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
