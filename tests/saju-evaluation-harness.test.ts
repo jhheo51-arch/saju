@@ -73,38 +73,41 @@ test("npm과 GitHub Actions가 같은 품질 하네스를 실행한다", () => {
   assert.match(workflow, /- run:\s*npm run build/);
 });
 
-test("하네스 다이어그램은 600×296 안에서 주 흐름·품질 게이트·Agent System을 보여준다", () => {
+test("기본 하네스 그림은 436×267 레퍼런스형 단일 인포그래픽과 접근성 설명을 제공한다", () => {
   const html = readFileSync(join(root, "docs", "diagrams", "saju-harness-workflow.html"), "utf8");
+  const svg = readFileSync(join(root, "docs", "diagrams", "saju-harness-workflow.svg"), "utf8");
   assert.match(html, /<html lang="ko">/);
-  assert.match(html, /<svg[^>]*viewBox="0 0 600 296"[^>]*role="img"[^>]*aria-labelledby="saju-harness-title saju-harness-desc"/);
-  assert.match(html, /<title id="saju-harness-title">[^<]+<\/title>/);
-  assert.match(html, /<desc id="saju-harness-desc">[^<]*harness\.md[^<]*실패하면 에이전트로 돌아가며 성공하면 완료[^<]*<\/desc>/);
+  assert.match(html, /<title>[^<]+<\/title>/);
+  assert.match(html, /<img src="saju-harness-workflow\.svg" alt="[^"]+">/);
+  assert.match(svg, /<svg[^>]*viewBox="0 0 436 267"[^>]*role="img"[^>]*aria-labelledby="title desc"/);
+  assert.match(svg, /<title id="title">[^<]+<\/title>/);
+  assert.match(svg, /<desc id="desc">[^<]*harness\.md[^<]*실패하면 에이전트로 돌아가고 통과하면 완료[^<]*<\/desc>/);
+  assert.match(svg, /<rect width="436" height="267" fill="#30312f"\/>/);
+  assert.match(svg, /<rect x="10" y="9" width="416" height="253"[^>]*fill="#fff"\/>/);
 
-  const bodyBeforeSvg = html.match(/<body>([\s\S]*?)<svg/)?.[1] ?? "missing";
-  const bodyAfterSvg = html.match(/<\/svg>([\s\S]*?)<\/body>/)?.[1] ?? "missing";
-  assert.equal(bodyBeforeSvg.trim(), "", "SVG 밖에 큰 제목이나 설명을 두지 않습니다");
-  assert.equal(bodyAfterSvg.trim(), "", "SVG 밖에 별도 설명 블록을 두지 않습니다");
-  assert.doesNotMatch(html.slice(html.indexOf("<body>")), /<(?:h1|h2|p)\b/);
-
-  const flow = ["사람 아이디어", "harness.md", "에이전트", "구현 결과"].map((label) => html.indexOf(`>${label}<`));
+  const flow = ["사람 아이디어", "harness.md", "에이전트", "구현 결과"].map((label) => svg.indexOf(`>${label}<`));
   assert.ok(flow.every((index) => index >= 0), "사람→명세→에이전트→구현 결과 노드가 모두 있어야 합니다");
   assert.ok(flow.every((index, position) => position === 0 || flow[position - 1] < index), "주 흐름 노드 순서가 맞아야 합니다");
-  assert.match(html, /d="M57 112H87"[^>]*marker-end="url\(#arr\)"/);
-  assert.match(html, /d="M124 112H162"[^>]*marker-end="url\(#arr\)"/);
-  assert.match(html, /d="M229 112H271"[^>]*marker-end="url\(#arr\)"/);
+  for (const label of ["AGENTS.md", "evals.json", "npm run harness", "FAIL", "PASS", "완료"]) {
+    assert.match(svg, new RegExp(`>${label.replace(".", "\\.")}<`));
+  }
+  assert.doesNotMatch(svg, />Agent System</);
+});
 
-  assert.match(html, />AGENTS\.md</);
-  assert.match(html, /수정하면 npm run harness 실행/);
-  assert.match(html, />evals\.json</);
-  assert.match(html, />npm run harness</);
-  assert.match(html, />FAIL</);
-  assert.match(html, /d="M292 211Q284 211[^>]*marker-end="url\(#arr\)"/);
-  assert.match(html, />PASS</);
-  assert.match(html, /d="M333 211H356"[^>]*marker-end="url\(#arr\)"/);
-  assert.match(html, />완료</);
+test("기본 하네스 HTML과 SVG는 외부 폰트·스크립트·이미지에 의존하지 않는다", () => {
+  const html = readFileSync(join(root, "docs", "diagrams", "saju-harness-workflow.html"), "utf8");
+  const svg = readFileSync(join(root, "docs", "diagrams", "saju-harness-workflow.svg"), "utf8");
+  assert.doesNotMatch(html, /<(?:script|link|iframe|object|embed)\b|@import\b|\bhttps?:\/\//i);
+  assert.doesNotMatch(svg.replace('xmlns="http://www.w3.org/2000/svg"', ""), /<(?:script|image|foreignObject)\b|@import\b|\bhttps?:\/\//i);
+});
 
-  assert.match(html, />Agent System</);
-  assert.match(html, />🧠 Model</);
-  assert.match(html, />Harness</);
-  assert.match(html, />Environment</);
+test("040 명세와 상태표는 검증을 마친 레퍼런스형 하네스 그림을 완료 상태로 연결한다", () => {
+  const spec = readFileSync(join(root, "docs", "specs", "040-reference-harness-visual.md"), "utf8");
+  const status = readFileSync(join(root, "docs", "status.md"), "utf8");
+  assert.match(spec, /^# 040-reference-harness-visual/m);
+  assert.match(spec, /436×267 캔버스에서 흰 종이와 짙은 외곽 배경/);
+  assert.match(spec, /외부 폰트·스크립트·이미지 의존성 없이 접근 가능한 SVG/);
+  assert.match(spec, /- 상태: 완료/);
+  assert.match(spec, /전체 테스트 187\/187/);
+  assert.match(status, /- \[x\] `040-reference-harness-visual\.md` — 첨부 레퍼런스와 같은 밀도·구도의 단일 하네스 그림/);
 });

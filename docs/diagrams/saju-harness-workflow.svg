@@ -1,143 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 600 296" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="saju-harness-title saju-harness-desc">
-    <title id="saju-harness-title">사주 서비스 하네스 엔지니어링 워크플로우</title>
-    <desc id="saju-harness-desc">사람의 요청이 harness.md를 거쳐 Codex 에이전트와 구현 결과로 이어지고, npm run harness가 실패하면 에이전트로 돌아가며 성공하면 완료됩니다. 오른쪽에는 모델, 하네스, 환경으로 구성된 에이전트 시스템이 있습니다.</desc>
-    <defs><style>@import url(&quot;https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700&amp;display=swap&quot;);</style>
-      <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#17213d"/></marker>
-      <marker id="arr-white" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="#ffffff"/></marker>
-    </defs>
-    <rect x="1" y="1" width="598" height="294" fill="#ffffff" stroke="#252525" stroke-width="2"/>
+<svg viewBox="0 0 436 267" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">사주 서비스 하네스 엔지니어링 워크플로우</title>
+  <desc id="desc">사람의 아이디어가 harness.md 기준과 AGENTS.md 정책을 따라 에이전트와 구현 결과로 이어집니다. evals.json을 npm run harness로 검사해 실패하면 에이전트로 돌아가고 통과하면 완료합니다.</desc>
+  <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#151b47"/></marker></defs>
+  <rect width="436" height="267" fill="#30312f"/><rect x="10" y="9" width="416" height="253" rx="1" fill="#fff"/>
 
-    <!-- All connectors are painted before nodes. -->
-    <path d="M57 112H87" fill="none" stroke="#17213d" stroke-width="3" marker-end="url(#arr)"/>
-    <path d="M124 112H162" fill="none" stroke="#17213d" stroke-width="3" marker-end="url(#arr)"/>
-    <path d="M229 112H271" fill="none" stroke="#17213d" stroke-width="3" marker-end="url(#arr)"/>
-    <path d="M134 108V48Q134 42 141 42H150" fill="none" stroke="#17213d" stroke-width="2" stroke-dasharray="2 4"/>
-    <path d="M311 43H330Q339 43 339 52V92" fill="none" stroke="#17213d" stroke-width="2" stroke-dasharray="2 4"/>
-    <path d="M311 104H324Q339 104 339 120V157Q339 160 334 160H230" fill="none" stroke="#17213d" stroke-width="2" stroke-dasharray="2 4" marker-end="url(#arr)"/>
-    <path d="M198 201V151" fill="none" stroke="#17213d" stroke-width="3" marker-end="url(#arr)"/>
-    <path d="M213 211H292" fill="none" stroke="#17213d" stroke-width="3" marker-end="url(#arr)"/>
-    <path d="M292 211Q284 211 284 202V192Q284 181 273 181H215" fill="none" stroke="#17213d" stroke-width="3" marker-end="url(#arr)"/>
-    <path d="M333 211H356" fill="none" stroke="#17213d" stroke-width="3" marker-end="url(#arr)"/>
+  <g fill="none" stroke="#151b47" stroke-width="2.5" marker-end="url(#arrow)">
+    <path d="M66 119H96"/><path d="M134 119H170"/><path d="M241 119H280"/><path d="M209 195V158"/>
+    <path d="M226 218H283"/><path d="M328 218H366"/><path d="M284 218C276 218 274 213 274 206V197C274 188 266 184 251 184H219"/>
+  </g>
+  <g fill="none" stroke="#151b47" stroke-width="2" stroke-dasharray="2 4">
+    <path d="M137 115V58C137 51 142 48 150 48H160"/><path d="M320 50H335C342 50 345 55 345 63V115"/>
+    <path d="M345 115V151C345 158 339 161 331 161H242" marker-end="url(#arrow)"/>
+  </g>
 
-    <!-- AGENTS policy card -->
-    <rect x="150" y="13" width="161" height="63" rx="4" fill="#3159d6" stroke="#17213d" stroke-width="2.5"/>
-    <text x="230.5" y="35" text-anchor="middle" fill="#ffffff" font-family="'Noto Sans KR',sans-serif" font-size="17" font-weight="700">AGENTS.md</text>
-    <text x="230.5" y="54" text-anchor="middle" fill="#ffffff" font-family="'Noto Sans KR',sans-serif" font-size="11" font-weight="600">수정하면 npm run harness 실행,</text>
-    <text x="230.5" y="69" text-anchor="middle" fill="#ffffff" font-family="'Noto Sans KR',sans-serif" font-size="11" font-weight="600">FAIL이면 수정 후 다시 검증</text>
+  <rect x="160" y="18" width="160" height="66" rx="4" fill="#3159d6" stroke="#151b47" stroke-width="2.5"/>
+  <text x="240" y="41" text-anchor="middle" fill="#fff" font-family="Arial,'Malgun Gothic',sans-serif" font-size="17" font-weight="700">AGENTS.md</text>
+  <text x="240" y="59" text-anchor="middle" fill="#fff" font-family="Arial,'Malgun Gothic',sans-serif" font-size="10.5" font-weight="700">수정하면 반드시 harness 실행,</text>
+  <text x="240" y="74" text-anchor="middle" fill="#fff" font-family="Arial,'Malgun Gothic',sans-serif" font-size="10.5" font-weight="700">FAIL 없을 때까지 고친다</text>
 
-    <!-- Small human idea -->
-    <g stroke="#17213d" stroke-width="1.5">
-      <circle cx="27" cy="105" r="8" fill="#d7c6f3"/>
-      <path d="M18 125Q19 111 27 111Q36 111 37 125Z" fill="#d7c6f3"/>
-      <rect x="38" y="104" width="18" height="14" rx="2" fill="#f6d69b"/>
-      <path d="M37 111H34" fill="none"/>
-    </g>
-    <text x="35" y="145" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="8.5" font-weight="700">사람 아이디어</text>
+  <g stroke="#151b47" stroke-width="1.6" stroke-linejoin="round">
+    <circle cx="37" cy="111" r="8" fill="#d8c7f2"/><path d="M27 133Q28 118 37 118Q46 118 47 133Z" fill="#d8c7f2"/>
+    <rect x="49" y="108" width="16" height="13" rx="1" fill="#f2d19a"/><path d="M47 115H42M58 108V116" fill="none"/>
+  </g>
+  <text x="43" y="149" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9" font-weight="700">사람 아이디어</text>
 
-    <!-- harness.md document -->
-    <g stroke="#17213d" stroke-width="1.7">
-      <path d="M91 93H112L122 103V130H91Z" fill="#fffaf0"/>
-      <path d="M112 93V103H122" fill="none"/>
-      <line x1="97" y1="108" x2="116" y2="108"/>
-      <line x1="97" y1="114" x2="116" y2="114"/>
-      <line x1="97" y1="120" x2="113" y2="120"/>
-    </g>
-    <text x="106" y="145" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="10" font-weight="700">harness.md</text>
-    <text x="106" y="157" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="9">(기준)</text>
+  <g stroke="#151b47" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M101 98H123L133 108V136H101Z" fill="#fffaf0"/><path d="M123 98V108H133" fill="none"/><path d="M107 113H127M107 119H127M107 125H123" fill="none"/>
+  </g>
+  <text x="117" y="150" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9.5" font-weight="700">harness.md</text>
+  <text x="117" y="162" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="8.5">(기준)</text>
 
-    <!-- Agent -->
-    <rect x="163" y="86" width="67" height="61" rx="2" fill="#e4ddfb"/>
-    <g stroke="#17213d" stroke-width="1.7">
-      <line x1="196.5" y1="101" x2="196.5" y2="95"/>
-      <circle cx="196.5" cy="93" r="2.5" fill="#ef7378"/>
-      <rect x="181" y="101" width="31" height="22" rx="4" fill="#d8f4f0"/>
-      <circle cx="189" cy="111" r="2.2" fill="#3159d6"/>
-      <circle cx="204" cy="111" r="2.2" fill="#3159d6"/>
-      <path d="M189 117Q196 122 204 117" fill="none"/>
-      <path d="M177 108H181M212 108H216" fill="none"/>
-      <rect x="178" y="126" width="37" height="8" rx="2" fill="#ffffff"/>
-    </g>
-    <text x="196.5" y="143" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="11" font-weight="700">에이전트</text>
+  <rect x="171" y="91" width="70" height="67" fill="#e1dcfb"/>
+  <g stroke="#151b47" stroke-width="1.6" stroke-linecap="round">
+    <path d="M206 105V99"/><circle cx="206" cy="97" r="2.5" fill="#ef7378"/><rect x="190" y="105" width="32" height="23" rx="5" fill="#d8f4f0"/>
+    <circle cx="198" cy="115" r="2" fill="#3159d6"/><circle cx="214" cy="115" r="2" fill="#3159d6"/><path d="M198 121Q206 126 214 121M186 113H190M222 113H226" fill="none"/>
+    <rect x="186" y="132" width="40" height="9" rx="2" fill="#fff"/>
+  </g>
+  <text x="206" y="153" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="11" font-weight="700">에이전트</text>
 
-    <!-- Generated result -->
-    <text x="248" y="107" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="10" font-weight="700">생성</text>
-    <g stroke="#17213d" stroke-width="1.7">
-      <path d="M276 93H297L307 103V130H276Z" fill="#fffaf0"/>
-      <path d="M297 93V103H307" fill="none"/>
-      <line x1="282" y1="108" x2="301" y2="108"/>
-      <line x1="282" y1="114" x2="301" y2="114"/>
-      <line x1="282" y1="120" x2="297" y2="120"/>
-    </g>
-    <text x="291" y="145" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="10" font-weight="700">구현 결과</text>
+  <text x="261" y="110" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9.5" font-weight="700">생성</text>
+  <g stroke="#151b47" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M284 98H306L316 108V136H284Z" fill="#fffaf0"/><path d="M306 98V108H316" fill="none"/><path d="M290 113H310M290 119H310M290 125H306" fill="none"/>
+  </g>
+  <text x="300" y="150" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9.5" font-weight="700">구현 결과</text>
 
-    <!-- Cute creator mascot -->
-    <g stroke="#17213d" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="40" cy="224" r="23" fill="#ffd0ad"/>
-      <path d="M17 221Q15 199 28 194Q45 185 61 199L66 213L58 208L56 219L49 211L43 217L35 209L27 218L22 211Z" fill="#7a3b25"/>
-      <circle cx="32" cy="224" r="2" fill="#17213d" stroke="none"/>
-      <circle cx="48" cy="224" r="2" fill="#17213d" stroke="none"/>
-      <path d="M34 233Q40 238 47 232" fill="none"/>
-      <path d="M19 248Q23 237 40 237Q57 237 62 254V276H18Z" fill="#173a52"/>
-      <path d="M62 248L76 236L84 244L72 256" fill="#ffd0ad"/>
-      <path d="M78 237L82 231M82 239L88 236" fill="none"/>
-    </g>
+  <g stroke="#151b47" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="52" cy="218" r="21" fill="#ffd0ad"/><path d="M31 216Q28 195 42 190Q58 184 72 197L77 211L69 207L66 217L59 209L52 215L44 207L37 216L33 209Z" fill="#7a3b25"/>
+    <circle cx="45" cy="219" r="2" fill="#151b47" stroke="none"/><circle cx="59" cy="219" r="2" fill="#151b47" stroke="none"/>
+    <path d="M46 228Q52 233 59 227" fill="none"/><path d="M31 242Q36 233 52 233Q68 233 74 251V257H30Z" fill="#173a52"/>
+    <path d="M74 244L87 233L94 241L83 252" fill="#ffd0ad"/><path d="M89 233L93 227M93 235L99 232" fill="none"/>
+  </g>
+  <g stroke="#151b47" stroke-width="1.6" stroke-linecap="round">
+    <path d="M121 205V199"/><circle cx="121" cy="196" r="3" fill="#ef7378"/><rect x="102" y="204" width="39" height="29" rx="7" fill="#d7f0f1"/>
+    <circle cx="112" cy="217" r="3" fill="#3159d6"/><circle cx="131" cy="217" r="3" fill="#3159d6"/>
+    <path d="M114 225Q121 230 128 225" fill="none"/><path d="M106 233V246H137V233" fill="#62becb"/>
+    <path d="M102 214L95 220M141 214L148 220M112 246L108 255M130 246L135 255" fill="none"/>
+  </g>
 
-    <!-- Cute robot mascot -->
-    <g stroke="#17213d" stroke-width="1.7" stroke-linecap="round">
-      <line x1="111" y1="222" x2="111" y2="215"/>
-      <circle cx="111" cy="212" r="3" fill="#ef7378"/>
-      <rect x="91" y="220" width="40" height="30" rx="7" fill="#d7f0f1"/>
-      <circle cx="102" cy="234" r="3" fill="#3159d6"/>
-      <circle cx="120" cy="234" r="3" fill="#3159d6"/>
-      <path d="M104 242Q111 247 118 242" fill="none"/>
-      <path d="M95 250V263H127V250" fill="#62becb"/>
-      <path d="M91 230L84 237M131 230L138 237" fill="none"/>
-      <path d="M100 263L96 272M119 263L124 272" fill="none"/>
-    </g>
-
-    <!-- Eval dataset -->
-    <g stroke="#17213d" stroke-width="1.7">
-      <path d="M183 202H204L214 212V239H183Z" fill="#fffaf0"/>
-      <path d="M204 202V212H214" fill="none"/>
-      <line x1="189" y1="217" x2="208" y2="217"/>
-      <line x1="189" y1="223" x2="208" y2="223"/>
-      <line x1="189" y1="229" x2="204" y2="229"/>
-    </g>
-    <text x="198" y="252" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="9" font-weight="700">evals.json</text>
-
-    <!-- Harness command and outcomes -->
-    <text x="257" y="181" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="8" font-weight="700" transform="rotate(-10 257 181)">규칙·답변 검사</text>
-    <text x="318" y="191" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="8" font-weight="700">npm run harness</text>
-    <text x="252" y="207" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="11" font-weight="700">FAIL</text>
-    <text x="326" y="207" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="11" font-weight="700">PASS</text>
-    <rect x="356" y="193" width="57" height="36" rx="4" fill="#ffc84d"/>
-    <text x="384.5" y="217" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="16" font-weight="700">완료</text>
-
-    <!-- Agent System -->
-    <rect x="433" y="22" width="164" height="229" rx="10" fill="#e8e7ff" stroke="#17213d" stroke-width="2"/>
-    <text x="515" y="16" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="14" font-weight="700">Agent System</text>
-    <text x="515" y="48" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="13" font-weight="700">🧠 Model</text>
-    <path d="M515 53V66M509 60L515 66L521 60" fill="none" stroke="#17213d" stroke-width="2"/>
-    <rect x="445" y="69" width="138" height="106" rx="5" fill="#fff1cf" stroke="#17213d" stroke-width="1.5"/>
-    <text x="514" y="85" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="12" font-weight="700">Harness</text>
-    <g fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="8.5" font-weight="600">
-      <text x="455" y="98">• Context — AGENTS · Spec</text>
-      <text x="455" y="109">• Agent Loop — 구현 · 재시도</text>
-      <text x="455" y="120">• Tool 호출 / 라우팅</text>
-      <text x="455" y="131">• State 관리</text>
-      <text x="455" y="142">• 권한 / Guardrail</text>
-      <text x="455" y="153">• Validation / Check</text>
-      <text x="455" y="164">• Subagent Orchestration</text>
-    </g>
-    <path d="M515 176V189M509 183L515 189L521 183" fill="none" stroke="#17213d" stroke-width="2"/>
-    <text x="515" y="204" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="12" font-weight="700">Environment</text>
-    <text x="515" y="217" text-anchor="middle" fill="#17213d" font-family="'Noto Sans KR',sans-serif" font-size="8.5">Files / Shell / APIs / DB</text>
-    <g stroke="#17213d" stroke-width="1.2">
-      <path d="M465 225H478L484 231V246H465Z" fill="#fffaf0"/><path d="M478 225V231H484" fill="none"/>
-      <path d="M494 230H504L508 234H528V246H494Z" fill="#f6d69b"/>
-      <rect x="536" y="227" width="22" height="18" rx="2" fill="#404451"/>
-      <path d="M541 233L545 236L541 239M548 240H553" fill="none" stroke="#ffffff"/>
-      <ellipse cx="573" cy="230" rx="9" ry="4" fill="#c6b8d9"/><path d="M564 230V242Q573 248 582 242V230" fill="#c6b8d9"/><ellipse cx="573" cy="242" rx="9" ry="4" fill="#c6b8d9"/>
-    </g>
-  </svg>
+  <g stroke="#151b47" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M194 195H215L225 205V234H194Z" fill="#fffaf0"/><path d="M215 195V205H225" fill="none"/><path d="M200 210H219M200 216H219M200 222H215" fill="none"/>
+  </g>
+  <text x="209" y="248" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9" font-weight="700">evals.json</text>
+  <text x="253" y="192" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="8.5" font-weight="700" transform="rotate(-12 253 192)">규칙·답변 검증</text>
+  <text x="308" y="198" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="8.5" font-weight="700">npm run harness</text>
+  <text x="261" y="216" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="11" font-weight="700">FAIL</text>
+  <text x="346" y="216" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="11" font-weight="700">PASS</text>
+  <rect x="366" y="200" width="56" height="36" rx="4" fill="#ffc84d"/>
+  <text x="394" y="224" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="16" font-weight="700">완료</text>
+</svg>
