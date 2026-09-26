@@ -23,6 +23,8 @@ CERTAINTY_PATTERNS = (
 )
 
 RELATIONSHIP_TOPICS = ("연애", "인간관계", "궁합", "결혼", "인연")
+MIN_ANSWER_LENGTH = 260
+MAX_ANSWER_LENGTH = 800
 BEHAVIOR_GROUPS = {
     "대화 속도": (r"대화\s*속도", r"말을\s*끊", r"답장\s*속도", r"대화를\s*서두르"),
     "감정 표현": (r"감정\s*표현", r"감정을\s*말", r"마음을\s*표현", r"기분을\s*말"),
@@ -74,6 +76,14 @@ def review(payload: Any) -> dict[str, Any]:
         "yinYang": "음양 분포",
         "season": "계절",
     }
+    expected_basis = " · ".join(_text(chart.get(field)) for field in required_facts)
+    if all(_text(chart.get(field)) for field in required_facts) and basis != expected_basis:
+        errors.append(
+            {
+                "code": "BASIS_FORMAT",
+                "message": f"근거는 계산값 네 개만 한 줄로 적어야 합니다: `{expected_basis}`",
+            }
+        )
     for field, label in required_facts.items():
         fact = _text(chart.get(field))
         if not fact:
@@ -93,6 +103,16 @@ def review(payload: Any) -> dict[str, Any]:
                     }
                 )
 
+    if answer and not MIN_ANSWER_LENGTH <= len(answer) <= MAX_ANSWER_LENGTH:
+        errors.append(
+            {
+                "code": "ANSWER_LENGTH",
+                "message": f"답변은 {MIN_ANSWER_LENGTH}~{MAX_ANSWER_LENGTH}자여야 합니다. 현재 {len(answer)}자입니다.",
+            }
+        )
+    if answer and len([part for part in re.split(r"\n\s*\n", answer) if part.strip()]) != 3:
+        errors.append({"code": "ANSWER_PARAGRAPHS", "message": "답변은 빈 줄로 나눈 세 문단이어야 합니다."})
+
     for pattern in GENERIC_PATTERNS:
         match = pattern.search(combined)
         if match:
@@ -110,11 +130,11 @@ def review(payload: Any) -> dict[str, Any]:
             for name, patterns in BEHAVIOR_GROUPS.items()
             if any(re.search(pattern, combined) for pattern in patterns)
         ]
-        if len(found_behaviors) < 2:
+        if len(found_behaviors) < 3:
             errors.append(
                 {
                     "code": "INSUFFICIENT_RELATIONSHIP_BEHAVIORS",
-                    "message": "관계 답변에는 관찰 가능한 행동 기준이 두 가지 이상 필요합니다. "
+                    "message": "관계 답변에는 관찰 가능한 행동 기준이 세 가지 이상 필요합니다. "
                     f"현재 감지: {', '.join(found_behaviors) if found_behaviors else '없음'}",
                 }
             )

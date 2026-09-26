@@ -111,11 +111,11 @@ function ExplainedText({ text, id, pillars = [] }: { text: string; id: string; p
 }
 
 const readingDetailLabels = {
-  basis: "계산 근거",
-  meaning: "쉬운 뜻",
-  scene: "생활에서는",
-  balance: "균형 있게 보기",
-  action: "작은 행동",
+  basis: "이렇게 읽은 단서",
+  meaning: "내 안의 흐름",
+  scene: "이럴 때 드러나요",
+  balance: "반대 모습도 있어요",
+  action: "지금 해볼 것",
 } as const;
 
 function ReadingCardContent({ section, id, pillars }: { section: Interpretation["personality"]; id: string; pillars: Pillar[] }) {
@@ -925,7 +925,7 @@ export default function SajuForm() {
 
             {result.reading.questionAnswer && <article className="question-answer" aria-live="polite">
               <span>질문에 대한 답</span>
-              {result.reading.questionAnswer.basis && <p className="question-answer-basis"><strong>이번 답변의 근거</strong><ExplainedText text={result.reading.questionAnswer.basis} id="question-basis" pillars={result.chart.pillars} /></p>}
+              {result.reading.questionAnswer.basis && <p className="question-answer-basis"><strong>이 답을 읽은 단서</strong><span className="question-answer-basis-text"><ExplainedText text={result.reading.questionAnswer.basis} id="question-basis" pillars={result.chart.pillars} /></span></p>}
               <p><ExplainedText text={result.reading.questionAnswer.answer} id="question-answer" pillars={result.chart.pillars} /></p>
               <div className="fortune-action">
                 <strong>지금 해볼 작은 행동</strong>

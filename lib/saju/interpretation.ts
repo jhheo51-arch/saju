@@ -162,13 +162,16 @@ export function parseQuestionAnswerResponse(
   }
   if (!isRecord(value)) throw new InvalidInterpretationError("질문에 대한 답이 빠졌습니다.");
   const basis = value.basis === undefined ? undefined : readingText(value.basis, 320);
-  if (requiredBasis.length && (!basis || requiredBasis.some((fact) => !basis.includes(fact)))) {
+  if (requiredBasis.length && basis !== requiredBasis.join(" · ")) {
     throw new InvalidInterpretationError("질문 답변에 실제 사주 근거가 빠졌습니다.");
   }
   const timingQuestion = isTimingQuestion(question);
-  const answer = timingQuestion ? directTimingAnswer(question, topic) : readingText(value.answer, 520);
-  if (requiredBasis.length && !timingQuestion && answer.length < 160) {
+  const answer = timingQuestion ? directTimingAnswer(question, topic) : readingText(value.answer, 800);
+  if (requiredBasis.length && !timingQuestion && answer.length < 260) {
     throw new InvalidInterpretationError("질문 답변의 구체적인 설명이 부족합니다.");
+  }
+  if (requiredBasis.length && !timingQuestion && answer.split(/\n\s*\n/).filter(Boolean).length !== 3) {
+    throw new InvalidInterpretationError("질문 답변의 문단 구성이 올바르지 않습니다.");
   }
   const action = readingText(value.action, 240);
   if (timingQuestion && containsUnsupportedTiming(action)) {

@@ -7,8 +7,16 @@ import { parseSavedInterpretation, type SavedInterpretation } from "../lib/saju/
 
 const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
 const token = "question-route-secret-token";
-const validBasis = "신금과 무자(토·수), 음 4·양 4, 겨울(자월)을 함께 보면 선택 기준을 차분히 정리하는 데 도움이 될 수 있어요.";
-const validAnswer = "가".repeat(160);
+const validBasis = "신금 · 무자(토·수) · 음 4·양 4 · 겨울(자월)";
+
+function threeParagraphAnswer(length: number): string {
+  const contentLength = length - 4;
+  const first = Math.floor(contentLength / 3);
+  const second = Math.floor((contentLength - first) / 2);
+  return `${"가".repeat(first)}\n\n${"나".repeat(second)}\n\n${"다".repeat(contentLength - first - second)}`;
+}
+
+const validAnswer = threeParagraphAnswer(260);
 const saved: SavedInterpretation = {
   version: 1,
   createdAt: "2026-09-23T08:00:00.000Z",
@@ -107,15 +115,18 @@ test("검증된 저장 결과만 사용하고 Gemini에는 생년월일과 토�
     const outbound = JSON.parse(outboundText);
     assert.deepEqual(outbound.response_format.schema.required, ["basis", "answer", "action"]);
     assert.equal(outbound.response_format.schema.properties.basis.maxLength, 320);
-    assert.equal(outbound.response_format.schema.properties.answer.maxLength, 520);
+    assert.equal(outbound.response_format.schema.properties.answer.maxLength, 800);
     assert.equal(outbound.response_format.schema.properties.action.maxLength, 240);
-    assert.equal(outbound.generation_config.max_output_tokens, 1000);
-    assert.match(outbound.system_instruction, /5~7개의 완결된 문장/);
-    assert.match(outbound.system_instruction, /첫 문장은 질문에 결론부터/);
-    assert.match(outbound.system_instruction, /서로 다른 단서 두 가지 이상이 왜 그 결론으로 이어지는지/);
-    assert.match(outbound.system_instruction, /현재 상황에서 나타날 수 있는 구체적인 모습/);
-    assert.match(outbound.system_instruction, /도움이 되는 선택 기준/);
-    assert.match(outbound.system_instruction, /조심해서 볼 반대 모습/);
+    assert.equal(outbound.generation_config.max_output_tokens, 1400);
+    assert.match(outbound.system_instruction, /따뜻하고 통찰력 있는 한국어 상담가/);
+    assert.match(outbound.system_instruction, /오래 대화한 상담자처럼 핵심을 구체적으로/);
+    assert.match(outbound.system_instruction, new RegExp(`basis는 설명을 덧붙이지 말고 정확히 '${validBasis.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}'만 출력`));
+    assert.match(outbound.system_instruction, /빈 줄로 나눈 정확히 3개의 짧은 문단/);
+    assert.match(outbound.system_instruction, /전체 6~9개의 완결된 문장/);
+    assert.match(outbound.system_instruction, /첫 문단은 질문에 대한 분명한 결론과 가장 중요한 이유/);
+    assert.match(outbound.system_instruction, /둘째 문단은 서로 다른 사주 단서가 부딪히거나 보완되는 방식과 실제 생활 장면/);
+    assert.match(outbound.system_instruction, /셋째 문단은 도움이 되는 선택 기준과 조심할 반대 모습/);
+    assert.match(outbound.system_instruction, /260~800자/);
     assert.match(outbound.system_instruction, /부족한 부분을 채워주는 사람/);
     assert.match(outbound.system_instruction, /대화 속도.*감정 표현.*갈등 뒤 회복.*경계 존중.*결정 방식/);
     assert.match(outbound.system_instruction, /최소 3가지/);
@@ -153,9 +164,9 @@ test("검증된 저장 결과만 사용하고 Gemini에는 생년월일과 토�
   assert.equal(geminiCalls, 1);
 });
 
-test("새 비시기 답변은 160~520자만 허용한다", async () => {
-  for (const [length, expectedStatus] of [[159, 502], [160, 200], [520, 200], [521, 502]] as const) {
-    await withServerEnvironment(async () => modelResponse("가".repeat(length), "오늘 조건 세 가지를 적어보세요."), async () => {
+test("새 비시기 답변은 정확히 3문단인 260~800자만 허용한다", async () => {
+  for (const [length, expectedStatus] of [[259, 502], [260, 200], [800, 200], [801, 502]] as const) {
+    await withServerEnvironment(async () => modelResponse(threeParagraphAnswer(length), "오늘 조건 세 가지를 적어보세요."), async () => {
       const response = await POST(request("새로운 일을 시작할 때 무엇을 볼까요?", saved, `Bearer ${token}`));
       assert.equal(response.status, expectedStatus, `${length}자 답변`);
       const json = await response.json();
@@ -165,7 +176,20 @@ test("새 비시기 답변은 160~520자만 허용한다", async () => {
   }
 });
 
-test("기존 저장 답변은 160자보다 짧아도 계속 복원한다", () => {
+test("새 비시기 답변은 길이가 맞아도 2문단이나 4문단이면 거절한다", async () => {
+  for (const answer of [
+    `${"가".repeat(140)}\n\n${"나".repeat(140)}`,
+    `${"가".repeat(70)}\n\n${"나".repeat(70)}\n\n${"다".repeat(70)}\n\n${"라".repeat(70)}`,
+  ]) {
+    await withServerEnvironment(async () => modelResponse(answer, "오늘 조건 세 가지를 적어보세요."), async () => {
+      const response = await POST(request("새로운 일을 시작할 때 무엇을 볼까요?", saved, `Bearer ${token}`));
+      assert.equal(response.status, 502);
+      assert.equal("questionAnswer" in await response.json(), false);
+    });
+  }
+});
+
+test("기존 저장 답변은 260자보다 짧고 3문단이 아니어도 계속 복원한다", () => {
   const oldAnswer = { answer: "기존의 짧은 답변이에요.", action: "조건 하나를 적어보세요." };
   const restored = parseSavedInterpretation({
     ...saved,
@@ -178,6 +202,8 @@ test("기존 저장 답변은 160자보다 짧아도 계속 복원한다", () =>
 test("basis가 없거나 실제 일간·월주·음양·계절 중 하나라도 다르면 502로 거절한다", async () => {
   const invalidBases = [
     undefined,
+    `${validBasis} 추가 설명`,
+    `${validBasis}\n추가 설명`,
     "무자(토·수), 음 4·양 4, 겨울(자월)을 참고했어요.",
     "신금, 음 4·양 4, 겨울(자월)을 참고했어요.",
     "신금, 무자(토·수), 음 3·양 5, 겨울(자월)을 참고했어요.",
@@ -187,9 +213,9 @@ test("basis가 없거나 실제 일간·월주·음양·계절 중 하나라도 
     await withServerEnvironment(async () => basis === undefined
       ? Response.json({
         status: "completed",
-        steps: [{ type: "model_output", content: [{ type: "text", text: JSON.stringify({ answer: "답변", action: "행동" }) }] }],
+        steps: [{ type: "model_output", content: [{ type: "text", text: JSON.stringify({ answer: validAnswer, action: "행동" }) }] }],
       })
-      : modelResponse("답변", "행동", basis), async () => {
+      : modelResponse(validAnswer, "행동", basis), async () => {
       const response = await POST(request("무엇을 준비할까요?", saved, `Bearer ${token}`));
       assert.equal(response.status, 502, `잘못된 basis 거절: ${String(basis)}`);
       assert.equal("questionAnswer" in await response.json(), false);
@@ -234,7 +260,8 @@ test("화면은 05 질문 영역과 입력·상태·답변·계정 저장 흐름
   assert.match(section, /questionLoading.*답변을 만들고 있어요/);
   assert.match(section, /questionError.*role="alert"/);
   assert.match(section, /questionAnswer\.basis/);
-  assert.match(section, /이번 답변의 근거/);
+  assert.match(section, /이 답을 읽은 단서/);
+  assert.match(section, /className="question-answer-basis-text"/);
   assert.match(section, /questionAnswer\.answer/);
   assert.match(section, /questionAnswer\.action/);
   assert.ok(askQuestion, "질문 전송 함수가 있어야 합니다");

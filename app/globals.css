@@ -1765,6 +1765,7 @@ button:disabled {
   line-height: 1.75;
   word-break: keep-all;
   overflow-wrap: break-word;
+  white-space: pre-line;
 }
 
 .question-answer .question-answer-basis {
@@ -1782,6 +1783,17 @@ button:disabled {
 .question-answer-basis strong {
   color: var(--primary);
   font-size: 12px;
+}
+
+.question-answer-basis-text {
+  display: block;
+}
+
+.question-answer-basis .term-trigger {
+  min-height: 28px;
+  padding: 0 2px;
+  font-size: inherit;
+  vertical-align: baseline;
 }
 
 .pending-label {

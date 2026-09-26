@@ -122,11 +122,11 @@ test("생성된 해석의 요약과 다섯 세부 항목을 모두 클릭형 설
   assert.match(source, /known \? <TermHelp/);
   assert.match(source, /<ExplainedText text=\{section\.body\}/);
   for (const [key, label] of [
-    ["basis", "계산 근거"],
-    ["meaning", "쉬운 뜻"],
-    ["scene", "생활에서는"],
-    ["balance", "균형 있게 보기"],
-    ["action", "작은 행동"],
+    ["basis", "이렇게 읽은 단서"],
+    ["meaning", "내 안의 흐름"],
+    ["scene", "이럴 때 드러나요"],
+    ["balance", "반대 모습도 있어요"],
+    ["action", "지금 해볼 것"],
   ]) {
     assert.match(source, new RegExp(`${key}: "${label}"`));
   }
