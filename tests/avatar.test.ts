@@ -128,9 +128,8 @@ test("궁궐 역할은 사용자 제공 후보에서 고르고 같은 사주에�
   assert.ok((expectedPalaceRoles[chartElement] as readonly string[]).includes(first.role), "역할은 해당 오행 후보 중 하나");
   assert.match(first.duty, new RegExp(`${chart.dayMaster.korean}${chart.dayMaster.element}`), "맡은 일에 일간 표시");
   assert.match(first.duty, new RegExp(`월주 ${chart.pillars[1].korean}`), "맡은 일에 월주 표시");
-  const avatar = avatarForChart(chart);
-  assert.ok(avatar);
-  assert.match(first.teamwork, new RegExp(`^${avatar.relations.balancesMe.element} 기운`), "함께할 기운에 균형 오행 표시");
+  const leastCount = Math.min(...Object.values(chart.elements));
+  assert.match(first.teamwork, new RegExp(`기운은 여덟 글자 중 ${leastCount}개`), "함께할 기운에 개인별 오행 분포 표시");
 });
 
 test("일간 오행이 같은 일부 다른 사주는 서로 다른 궁궐 역할을 받을 수 있다", () => {
@@ -139,21 +138,25 @@ test("일간 오행이 같은 일부 다른 사주는 서로 다른 궁궐 역�
   assert.equal(samples[0].dayMaster.element, samples[1].dayMaster.element, "비교 사례의 일간 오행이 같다");
   const stories = samples.map((sample) => palaceStoryForChart(sample));
   assert.ok(stories[0] && stories[1]);
-  assert.notEqual(stories[0].role, stories[1].role, "다른 사주 글자 조합은 같은 그림 안에서도 다른 역할 가능");
+  assert.match(stories[0].duty, new RegExp(`월주 ${samples[0].pillars[1].korean}`));
+  assert.match(stories[1].duty, new RegExp(`월주 ${samples[1].pillars[1].korean}`));
   assert.equal(avatarForChart(samples[0])?.image, avatarForChart(samples[1])?.image, "같은 오행 그림은 유지");
 });
 
 test("결과 화면에 궁궐 이야기와 창작 설정 안내가 있다", () => {
   const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(source, /const avatar = result \? avatarForChart\(result\.chart\) : null/);
+  assert.match(source, /const avatar = result && avatarStyle \? avatarForChart\(result\.chart, avatarStyle\) : null/);
   assert.match(source, /section-step">03<\/span>[\s\S]*?avatar-card[\s\S]*?section-step">04<\/span>/);
+  assert.match(source, /className="avatar-title-line">[\s\S]*?<h2 id="visual-title">나의 아바타<\/h2>[\s\S]*?태어난 날의 오행/);
+  assert.match(css, /\.avatar-title-line\s*\{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;/);
   assert.doesNotMatch(source, /ElementGraph/);
   assert.match(source, /<Image[\s\S]*?src=\{avatar\.image\}[\s\S]*?className="avatar-figure"/);
-  for (const [label, value] of [["궁궐 역할", "role"], ["맡은 일", "duty"], ["함께할 기운", "teamwork"]]) {
-    assert.ok(source.includes(`<dt>${label}</dt><dd>{palaceStory.${value}}</dd>`), `${label} 표시`);
+  assert.ok(source.includes("<dt>궁궐 역할</dt><dd>{palaceStory.role}</dd>"), "궁궐 역할 표시");
+  for (const [label, value, id] of [["맡은 일", "duty", "avatar-duty"], ["함께할 기운", "teamwork", "avatar-teamwork"]]) {
+    assert.ok(source.includes(`<dt>${label}</dt><dd><ExplainedText text={palaceStory.${value}} id="${id}" pillars={result.chart.pillars} /></dd>`), `${label}의 사주 용어 설명 표시`);
   }
-  assert.match(source, /실제 직업·신분·성별을 알아낸 결과가 아닌 창작 설정입니다/);
+  assert.match(source, /창작 설정이며 실제 직업·신분·성별을 알아낸 결과가 아닙니다/);
   assert.match(source, /전통 상징을 쉽게 풀어본 참고/);
   assert.match(source, /실제 궁합이나 인간관계를 확정하지 않아요/);
   assert.doesNotMatch(source, /반드시 (?:만나|같이 다녀)|피해야 (?:해|합니다)/, "특정 오행 사람을 만나거나 피하라고 지시하지 않는다");

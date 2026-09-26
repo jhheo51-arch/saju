@@ -11,7 +11,10 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "check:harness": "node scripts/check-harness.mjs",
+    "eval:saju": "python evals/run_saju_evals.py",
+    "harness": "npm run check:harness && npm run check && npm run eval:saju"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",
