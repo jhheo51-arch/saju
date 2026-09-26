@@ -22,6 +22,11 @@ CERTAINTY_PATTERNS = (
     re.compile(r"(?:합격|연애\s*성사|결혼|수익|완치).{0,12}(?:할\s*것|된다|예정이다)"),
 )
 
+UNSUPPORTED_CALCULATION_PATTERNS = (
+    re.compile(r"(?:대운|세운|특수격국|조후)(?:이|가|은|는|을|를)?"),
+    re.compile(r"(?:삼합|육합|충|형|파|해)(?:이|가|은|는|을|를)?\s*(?:있|들|작용|성립)"),
+)
+
 RELATIONSHIP_TOPICS = ("연애", "인간관계", "궁합", "결혼", "인연")
 MIN_ANSWER_LENGTH = 260
 MAX_ANSWER_LENGTH = 800
@@ -122,6 +127,19 @@ def review(payload: Any) -> dict[str, Any]:
         match = pattern.search(combined)
         if match:
             errors.append({"code": "CERTAIN_PREDICTION", "message": f"확정적인 미래 예측 표현이 있습니다: `{match.group(0)}`"})
+
+    for pattern in UNSUPPORTED_CALCULATION_PATTERNS:
+        match = pattern.search(combined)
+        if match:
+            errors.append({"code": "UNSUPPORTED_CALCULATION", "message": f"입력에 없는 명리 계산을 만든 표현이 있습니다: `{match.group(0)}`"})
+
+    sentences = [item.strip() for item in re.split(r"(?<=[.!?요다])\s+", answer) if len(item.strip()) >= 18]
+    repeated = next((sentence for sentence in sentences if sentences.count(sentence) > 1), None)
+    if repeated:
+        errors.append({"code": "REPEATED_SENTENCE", "message": f"같은 문장이 반복됩니다: `{repeated}`"})
+
+    if action and not re.search(r"오늘|이번\s*주|다음|한\s*(?:번|줄|개|가지|명)|두\s*(?:번|줄|개|가지|명)|세\s*(?:번|줄|개|가지|명)|\d+\s*(?:분|시|번|줄|개|가지|명)", action):
+        errors.append({"code": "VAGUE_ACTION", "message": "작은 행동에 시점·횟수·대상 중 하나가 드러나야 합니다."})
 
     topic = _text(context.get("topic"))
     if any(word in topic for word in RELATIONSHIP_TOPICS):

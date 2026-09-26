@@ -35,7 +35,7 @@ export function parseSavedInterpretation(value: unknown): SavedInterpretation | 
     const saved = value as Partial<SavedInterpretation>;
     if (saved.version !== 1 || typeof saved.createdAt !== "string" || !Number.isFinite(Date.parse(saved.createdAt)) ||
       !isReadingTopic(saved.topic) || !saved.chart || typeof saved.chart !== "object" ||
-      !Array.isArray(saved.chart.pillars) || saved.chart.pillars.length !== 4 ||
+      !Array.isArray(saved.chart.pillars) || ![3, 4].includes(saved.chart.pillars.length) ||
       !saved.chart.pillars.every((pillar) => typeof pillar?.label === "string" && typeof pillar?.korean === "string" && typeof pillar?.stem === "string" && typeof pillar?.branch === "string") ||
       typeof saved.chart.method !== "string" || !saved.chart.dayMaster || !saved.chart.elements || !saved.reading) return null;
     const reading = parseInterpretationResponse(saved.reading, saved.topic, saved.reading.today?.date);

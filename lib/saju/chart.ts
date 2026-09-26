@@ -10,6 +10,7 @@ export type SajuInput = {
   topic: "general" | ReadingTopic;
   question?: string;
   unknownTime?: boolean;
+  approximateTime?: "dawn" | "morning" | "afternoon" | "evening";
 };
 
 export type PillarLabel = "년주" | "월주" | "일주" | "시주";
@@ -31,6 +32,8 @@ export type SajuChart = {
   method: string;
   engine: string;
   elementMethod: string;
+  timeBasis?: "exact" | "approximate" | "unknown";
+  timeNote?: string;
 };
 
 export class InputError extends Error {
@@ -124,15 +127,14 @@ export function validateInput(raw: SajuInput): SajuInput {
     throw new InputError("실제로 존재하는 날짜를 입력해주세요.", "date");
   if (year < 1990)
     throw new InputError("1990년 1월 1일 이후의 날짜를 지원합니다.", "date");
-  if (raw.unknownTime === true)
-    throw new InputError(
-      "이번 버전은 출생 시각을 아는 경우에만 계산합니다.",
-      "unknownTime",
-    );
-  if (
+  const approximateTime = raw.approximateTime;
+  if (approximateTime !== undefined && !["dawn", "morning", "afternoon", "evening"].includes(approximateTime))
+    throw new InputError("대략적인 출생 시간대를 다시 골라주세요.", "approximateTime");
+  const limitedTime = raw.unknownTime === true || approximateTime !== undefined;
+  if (!limitedTime && (
     typeof raw.time !== "string" ||
     !/^([01]\d|2[0-3]):[0-5]\d$/.test(raw.time)
-  )
+  ))
     throw new InputError("태어난 시각을 정확히 입력해주세요.", "time");
   if (raw.topic !== "general" && !isReadingTopic(raw.topic))
     throw new InputError("풀이 주제를 선택해주세요.", "topic");
@@ -140,9 +142,10 @@ export function validateInput(raw: SajuInput): SajuInput {
 
   return {
     date,
-    time: raw.time,
+    time: limitedTime ? "" : raw.time,
     calendar: "solar",
-    unknownTime: false,
+    unknownTime: raw.unknownTime === true,
+    ...(approximateTime ? { approximateTime } : {}),
     topic: raw.topic,
     question,
   };
@@ -164,7 +167,8 @@ function pillar(label: PillarLabel, text: string): Pillar {
 export function calculate(raw: SajuInput): SajuChart {
   const input = validateInput(raw);
   const [year, month, day] = input.date.split("-").map(Number);
-  const [hour, minute] = input.time.split(":").map(Number);
+  const limitedTime = input.unknownTime === true || input.approximateTime !== undefined;
+  const [hour, minute] = limitedTime ? [12, 0] : input.time.split(":").map(Number);
 
   const chinaTime = new Date(
     Date.UTC(year, month - 1, day, hour - 1, minute),
@@ -184,12 +188,12 @@ export function calculate(raw: SajuInput): SajuChart {
     .getEightChar();
   local.setSect(1);
 
-  const pillars = [
+  const pillars: Pillar[] = [
     pillar("년주", terms.getYear()),
     pillar("월주", terms.getMonth()),
     pillar("일주", local.getDay()),
-    pillar("시주", local.getTime()),
   ];
+  if (!limitedTime) pillars.push(pillar("시주", local.getTime()));
   const elements: SajuChart["elements"] = {
     목: 0,
     화: 0,
@@ -213,6 +217,14 @@ export function calculate(raw: SajuInput): SajuChart {
     method: CALCULATION,
     engine: "lunar-javascript@1.7.7",
     elementMethod:
-      "천간과 지지의 대표 오행 8자를 센 값입니다. 지장간과 계절 가중치를 반영한 강약 판단은 아닙니다.",
+      limitedTime
+        ? "출생시간을 제외한 년주·월주·일주의 천간과 지지 6자를 센 값입니다. 시주·지장간·계절 가중치는 반영하지 않습니다."
+        : "천간과 지지의 대표 오행 8자를 센 값입니다. 지장간과 계절 가중치를 반영한 강약 판단은 아닙니다.",
+    timeBasis: input.approximateTime ? "approximate" : input.unknownTime ? "unknown" : "exact",
+    timeNote: input.approximateTime
+      ? "대략적인 시간대만 알아 시주는 제외했습니다. 출생시간을 확인하면 세부 결과가 달라질 수 있어요."
+      : input.unknownTime
+        ? "출생시간을 몰라 시주는 제외했습니다. 특히 밤 11시 전후 출생이라면 일주도 달라질 수 있어요."
+        : "입력한 출생시간으로 시주까지 계산했습니다.",
   };
 }

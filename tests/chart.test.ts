@@ -51,7 +51,7 @@ for (const [changes, message] of [
   [{ date: "1989-12-31" }, "1990"],
   [{ time: "24:00" }, "시각"],
   [{ time: "12:60" }, "시각"],
-  [{ unknownTime: true }, "출생 시각"],
+  [{ approximateTime: "night" }, "시간대"],
   [{ calendar: "lunar" }, "양력"],
   [{ question: "x".repeat(201) }, "200자"],
   [{ topic: "anything" }, "주제"],
@@ -94,6 +94,41 @@ test("불필요한 개인정보와 클라이언트 계산값을 무시한다", (
   assert.equal("nickname" in input, false);
   assert.equal("email" in input, false);
   assert.equal("chart" in input, false);
+});
+
+test("정확한 출생시간은 시주까지 계산하고 정확도 정보를 남긴다", () => {
+  const chart = calculate(base);
+  assert.equal(chart.pillars.length, 4);
+  assert.equal(chart.pillars.at(-1)?.label, "시주");
+  assert.equal(Object.values(chart.elements).reduce((sum, count) => sum + count, 0), 8);
+  assert.equal(chart.timeBasis, "exact");
+  assert.match(chart.timeNote || "", /시주까지/);
+});
+
+test("출생시간을 모르거나 대략만 알면 임의 시주 없이 같은 6글자 제한 풀이를 만든다", () => {
+  const unknown = calculate({ ...base, time: "", unknownTime: true });
+  const approximate = calculate({ ...base, time: "", approximateTime: "morning" });
+
+  for (const chart of [unknown, approximate]) {
+    assert.equal(chart.pillars.length, 3);
+    assert.deepEqual(chart.pillars.map(({ label }) => label), ["년주", "월주", "일주"]);
+    assert.equal(Object.values(chart.elements).reduce((sum, count) => sum + count, 0), 6);
+    assert.match(chart.elementMethod, /6자|시주.*반영하지/);
+  }
+  assert.deepEqual(unknown.pillars, approximate.pillars);
+  assert.equal(unknown.timeBasis, "unknown");
+  assert.equal(approximate.timeBasis, "approximate");
+  assert.match(unknown.timeNote || "", /밤 11시.*일주.*달라질/);
+  assert.match(approximate.timeNote || "", /시주.*제외|세부 결과.*달라질/);
+});
+
+test("출생시간 제한 입력은 정확한 시각을 저장 가능한 입력에 남기지 않는다", () => {
+  const unknown = validateInput({ ...base, time: "08:37", unknownTime: true });
+  const approximate = validateInput({ ...base, time: "08:37", approximateTime: "evening" });
+  assert.equal(unknown.time, "");
+  assert.equal(approximate.time, "");
+  assert.equal(unknown.unknownTime, true);
+  assert.equal(approximate.approximateTime, "evening");
 });
 
 test("돈 주제를 선택해도 입력을 받아들인다", () => {

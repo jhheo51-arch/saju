@@ -49,3 +49,8 @@ Spec을 만들면 아래 목록에 파일명을 추가합니다. 구현과 검�
 - [x] `039-visualization-method-comparison.md` — Data·Figma·GitHub 스킬로 하네스 시각화 3종을 만들고 비교
 - [x] `040-reference-harness-visual.md` — 첨부 레퍼런스와 같은 밀도·구도의 단일 하네스 그림으로 재작성
 - [x] `041-harness-eval-remediation.md` — 하네스 평가의 Ship 4건과 PRD Mixed 정리 계획 반영
+- [x] `042-birth-time-confidence.md` — 출생시간 정확도별 시주 제외 제한 풀이
+- [ ] `043-account-history-privacy.md` — 최근 10건 기록·개별/전체 삭제·질문 답변 저장 선택
+- [x] `044-personalized-question-structure.md` — 고민 핵심·선택 기준·반대 모습·작은 행동으로 질문 답변 구체화
+- [ ] `045-api-privacy-guardrails.md` — 사용자별 요청 제한과 실제 계정 검증 절차
+- [ ] `046-expanded-answer-evaluation.md` — 허위 계산·반복·모호한 행동 자동 검사와 20건 사람 평가

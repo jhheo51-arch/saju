@@ -232,7 +232,7 @@ test("결과 화면은 두 계산 사실과 비단정 안내를 모바일 친화
   const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 
-  assert.match(source, /여덟 글자의[\s\S]*term="음양"/);
+  assert.match(source, /result\.chart\.pillars\.length \* 2\}개 글자의[\s\S]*term="음양"/);
   assert.match(source, /음 \{chartContext\.yinYang\.yin\} · 양 \{chartContext\.yinYang\.yang\}/);
   assert.match(source, /월지의 전통 계절 구간/);
   assert.match(source, /\{chartContext\.season\.name\} · \{chartContext\.season\.monthLabel\}/);

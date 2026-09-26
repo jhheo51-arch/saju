@@ -40,10 +40,18 @@ function request(question: unknown, result: unknown = saved, authorization?: str
   });
 }
 
-function modelResponse(answer: string, action: string, basis = validBasis): Response {
+function modelResponse(answer: string, action: string, basis = validBasis, overrides: Record<string, unknown> = {}): Response {
   return Response.json({
     status: "completed",
-    steps: [{ type: "model_output", content: [{ type: "text", text: JSON.stringify({ basis, answer, action }) }] }],
+    steps: [{ type: "model_output", content: [{ type: "text", text: JSON.stringify({
+      basis,
+      focus: "중요한 선택 앞에서 실제로 확인할 기준을 정하는 고민이에요.",
+      answer,
+      criteria: ["대화 뒤 다음 행동을 서로 같은 말로 확인하는지 살펴보세요.", "한 번의 인상보다 세 번의 일관된 행동이 있는지 확인하세요."],
+      caution: "기준을 오래 다듬느라 결정을 계속 미루는 모습이 반복되면 잠시 멈추세요.",
+      action,
+      ...overrides,
+    }) }] }],
   });
 }
 
@@ -101,6 +109,7 @@ test("빈 질문과 200자 초과 질문은 Gemini 호출 전에 거절한다", 
 
 test("검증된 저장 결과만 사용하고 Gemini에는 생년월일과 토큰을 보내지 않는다", async () => {
   let geminiCalls = 0;
+  let outboundAssertion: unknown;
   const tainted = {
     ...saved,
     rawBirthDate: "2005-12-23",
@@ -110,13 +119,16 @@ test("검증된 저장 결과만 사용하고 Gemini에는 생년월일과 토�
   };
   await withServerEnvironment(async (_url, init) => {
     geminiCalls++;
+    try {
     const outboundText = String(init?.body);
     assert.doesNotMatch(outboundText, /2005-12-23|08:37|question-route-secret-token|gemini-question-secret/);
     const outbound = JSON.parse(outboundText);
-    assert.deepEqual(outbound.response_format.schema.required, ["basis", "answer", "action"]);
+    assert.deepEqual(outbound.response_format.schema.required, ["basis", "focus", "answer", "criteria", "caution", "action"]);
     assert.equal(outbound.response_format.schema.properties.basis.maxLength, 320);
     assert.equal(outbound.response_format.schema.properties.answer.maxLength, 800);
     assert.equal(outbound.response_format.schema.properties.action.maxLength, 240);
+    assert.equal(outbound.response_format.schema.properties.criteria.minItems, 2);
+    assert.equal(outbound.response_format.schema.properties.criteria.maxItems, 2);
     assert.equal(outbound.generation_config.max_output_tokens, 1400);
     assert.match(outbound.system_instruction, /따뜻하고 통찰력 있는 한국어 상담가/);
     assert.match(outbound.system_instruction, /오래 대화한 상담자처럼 핵심을 구체적으로/);
@@ -125,7 +137,10 @@ test("검증된 저장 결과만 사용하고 Gemini에는 생년월일과 토�
     assert.match(outbound.system_instruction, /전체 6~9개의 완결된 문장/);
     assert.match(outbound.system_instruction, /첫 문단은 질문에 대한 분명한 결론과 가장 중요한 이유/);
     assert.match(outbound.system_instruction, /둘째 문단은 서로 다른 사주 단서가 부딪히거나 보완되는 방식과 실제 생활 장면/);
-    assert.match(outbound.system_instruction, /셋째 문단은 도움이 되는 선택 기준과 조심할 반대 모습/);
+    assert.match(outbound.system_instruction, /셋째 문단은 도움이 되는 판단 방식과 조심할 반대 모습/);
+    assert.match(outbound.system_instruction, /focus에는 질문과 선택한 현재 상황·원하는 방향을 한 문장으로 다시 정리/);
+    assert.match(outbound.system_instruction, /criteria에는.*서로 다른 선택 기준을 정확히 두 개/);
+    assert.match(outbound.system_instruction, /caution에는 장점이 과해질 때 나타나는 반대 행동과 중단 기준/);
     assert.match(outbound.system_instruction, /260~800자/);
     assert.match(outbound.system_instruction, /부족한 부분을 채워주는 사람/);
     assert.match(outbound.system_instruction, /대화 속도.*감정 표현.*갈등 뒤 회복.*경계 존중.*결정 방식/);
@@ -140,13 +155,20 @@ test("검증된 저장 결과만 사용하고 Gemini에는 생년월일과 토�
     assert.equal(context.previousReading.topic, saved.reading.topic.body);
     assert.equal(context.chart.pillars.length, 4);
     assert.deepEqual(Object.keys(context.chart.pillars[0]).sort(), ["branchElement", "korean", "label", "stemElement"]);
+    } catch (error) {
+      outboundAssertion = error;
+    }
     return modelResponse(validAnswer, "오늘 원하는 조건 세 가지를 적어보세요.");
   }, async () => {
     const response = await POST(request("새로운 일을 시작해도 될까요?", tainted, `Bearer ${token}`));
     assert.equal(response.status, 200);
+    if (outboundAssertion) throw outboundAssertion;
     assert.deepEqual((await response.json()).questionAnswer, {
       basis: validBasis,
+      focus: "중요한 선택 앞에서 실제로 확인할 기준을 정하는 고민이에요.",
       answer: validAnswer,
+      criteria: ["대화 뒤 다음 행동을 서로 같은 말로 확인하는지 살펴보세요.", "한 번의 인상보다 세 번의 일관된 행동이 있는지 확인하세요."],
+      caution: "기준을 오래 다듬느라 결정을 계속 미루는 모습이 반복되면 잠시 멈추세요.",
       action: "오늘 원하는 조건 세 가지를 적어보세요.",
     });
     assert.equal(geminiCalls, 1);
@@ -182,6 +204,21 @@ test("새 비시기 답변은 길이가 맞아도 2문단이나 4문단이면 �
     `${"가".repeat(70)}\n\n${"나".repeat(70)}\n\n${"다".repeat(70)}\n\n${"라".repeat(70)}`,
   ]) {
     await withServerEnvironment(async () => modelResponse(answer, "오늘 조건 세 가지를 적어보세요."), async () => {
+      const response = await POST(request("새로운 일을 시작할 때 무엇을 볼까요?", saved, `Bearer ${token}`));
+      assert.equal(response.status, 502);
+      assert.equal("questionAnswer" in await response.json(), false);
+    });
+  }
+});
+
+test("새 비시기 답변은 고민 초점·서로 다른 기준 2개·주의 행동을 모두 요구한다", async () => {
+  for (const overrides of [
+    { focus: undefined },
+    { criteria: ["기준 하나만 확인하세요."] },
+    { criteria: ["같은 기준", "같은 기준"] },
+    { caution: undefined },
+  ]) {
+    await withServerEnvironment(async () => modelResponse(validAnswer, "오늘 조건 세 가지를 적어보세요.", validBasis, overrides), async () => {
       const response = await POST(request("새로운 일을 시작할 때 무엇을 볼까요?", saved, `Bearer ${token}`));
       assert.equal(response.status, 502);
       assert.equal("questionAnswer" in await response.json(), false);
@@ -260,13 +297,19 @@ test("화면은 05 질문 영역과 입력·상태·답변·계정 저장 흐름
   assert.match(section, /questionLoading.*답변을 만들고 있어요/);
   assert.match(section, /questionError.*role="alert"/);
   assert.match(section, /questionAnswer\.basis/);
+  assert.match(section, /questionAnswer\.focus/);
+  assert.match(section, /questionAnswer\.criteria/);
+  assert.match(section, /questionAnswer\.caution/);
   assert.match(section, /이 답을 읽은 단서/);
   assert.match(section, /className="question-answer-basis-text"/);
   assert.match(section, /questionAnswer\.answer/);
   assert.match(section, /questionAnswer\.action/);
   assert.ok(askQuestion, "질문 전송 함수가 있어야 합니다");
   assert.match(askQuestion, /fetch\("\/api\/question"/);
+  assert.match(askQuestion, /if \(saveQuestionAnswer\)/);
+  assert.match(askQuestion, /updateAccountResult\(client, user\.id, result\.id/);
   assert.match(askQuestion, /saveAccountResult\(client, user\.id/);
+  assert.match(section, /type="checkbox"[\s\S]*?질문 원문은 저장하지 않아요/);
   assert.match(askQuestion, /setResult\(nextResult\)/);
   assert.match(askQuestion, /답변은 만들었지만 계정에 저장하지 못했어요/);
 });

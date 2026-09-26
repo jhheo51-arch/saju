@@ -24,7 +24,7 @@ export type DailyFortune = { date: string; body: string };
 
 export type Interpretation = {
   context?: PersonalContext;
-  questionAnswer?: { basis?: string; answer: string; action: string };
+  questionAnswer?: { basis?: string; focus?: string; answer: string; criteria?: string[]; caution?: string; action: string };
   personality: ReadingSection;
   topic: ReadingSection & { kind: ReadingTopic };
   today: ReadingSection & { date: string; action?: string };
@@ -177,7 +177,18 @@ export function parseQuestionAnswerResponse(
   if (timingQuestion && containsUnsupportedTiming(action)) {
     throw new InvalidInterpretationError("확실하지 않은 시기가 행동 제안에 포함되었습니다.");
   }
-  return { ...(basis ? { basis } : {}), answer, action };
+  const focus = value.focus === undefined ? undefined : readingText(value.focus, 180);
+  const caution = value.caution === undefined ? undefined : readingText(value.caution, 240);
+  let criteria: string[] | undefined;
+  if (value.criteria !== undefined) {
+    if (!Array.isArray(value.criteria) || value.criteria.length !== 2) throw new InvalidInterpretationError("질문 답변의 선택 기준이 올바르지 않습니다.");
+    criteria = value.criteria.map((item) => readingText(item, 180));
+    if (criteria[0] === criteria[1]) throw new InvalidInterpretationError("질문 답변의 선택 기준이 서로 달라야 합니다.");
+  }
+  if (requiredBasis.length && !timingQuestion && (!focus || !criteria || !caution)) {
+    throw new InvalidInterpretationError("질문 답변의 개인화 항목이 빠졌습니다.");
+  }
+  return { ...(basis ? { basis } : {}), ...(focus ? { focus } : {}), answer, ...(criteria ? { criteria } : {}), ...(caution ? { caution } : {}), action };
 }
 
 export function parseInterpretationResponse(

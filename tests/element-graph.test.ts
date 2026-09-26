@@ -21,9 +21,9 @@ function assertAppearsInOrder(source: string, values: readonly string[]) {
 test("계산 근거의 방사형 그래프는 chart.elements 실제 값을 받는다", () => {
   const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(source, /ElementGraph|elementGraphForChart|element-graph/);
-  assert.match(source, /여덟 글자의 <TermHelp term="오행"/);
+  assert.match(source, /result\.chart\.pillars\.length \* 2\}개 글자의 <TermHelp term="오행"/);
   assert.match(source, /<ElementRadar values=\{result\.chart\.elements\} \/>/);
-  assert.match(source, /오행 숫자는 글자 수예요/);
+  assert.match(source, /오행 숫자는 현재 계산에 포함된 글자 수예요/);
 });
 
 test("넓은 화면은 왼쪽 방사형 그래프와 오른쪽 일간·월주 사실 카드로 구성된다", () => {

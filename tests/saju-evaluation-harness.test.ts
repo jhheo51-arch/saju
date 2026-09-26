@@ -24,13 +24,14 @@ function python(args: string[]) {
   });
 }
 
-test("고정된 사주 사례 일곱 개가 모두 기대 판정을 통과하고 latest.json에 기록된다", () => {
+test("고정된 사주 사례 열 개가 모두 기대 판정을 통과하고 latest.json에 기록된다", () => {
+  assert.equal(cases.length, 10);
   const run = python(["evals/run_saju_evals.py"]);
   assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
-  assert.match(run.stdout, /Saju evals: 7\/7 passed/);
+  assert.match(run.stdout, /Saju evals: 10\/10 passed/);
 
   const report = JSON.parse(readFileSync(reportPath, "utf8"));
-  assert.deepEqual(report.summary, { total: 7, passed: 7, failed: 0 });
+  assert.deepEqual(report.summary, { total: 10, passed: 10, failed: 0 });
   assert.deepEqual(report.results.map((result: { id: string }) => result.id), cases.map((item) => item.id));
   assert.ok(report.results.every((result: { passed: boolean }) => result.passed));
 });

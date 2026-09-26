@@ -23,6 +23,7 @@ const requiredFiles = [
   "docs/specs/037-saju-evaluation-harness.md",
   "docs/specs/038-explicit-harness-system.md",
   "evals/saju-answer-cases.json",
+  "evals/human-review-cases.json",
   "evals/run_saju_evals.py",
   ".github/workflows/quality.yml",
 ];
@@ -54,6 +55,16 @@ for (const command of ["npm run harness", "npm run build"]) {
 if (!contents["AGENTS.md"].includes("harness.md")) failures.push("AGENTS.md에서 harness.md를 참조하지 않음");
 if (!contents["harness.md"].includes("FAIL이면 수정·재실행")) failures.push("harness.md에 실패 재실행 규칙이 없음");
 
+try {
+  const humanCases = JSON.parse(contents["evals/human-review-cases.json"] || "{}");
+  if (!Array.isArray(humanCases.cases) || humanCases.cases.length < 20) failures.push("사람 평가 사례가 20개보다 적음");
+  for (const field of ["specificity", "plausibility", "helpfulness", "discomfort"]) {
+    if (!humanCases.rubric?.[field]) failures.push(`사람 평가 기준 없음: ${field}`);
+  }
+} catch {
+  failures.push("사람 평가 사례 JSON을 읽을 수 없음");
+}
+
 if (failures.length > 0) {
   console.error("[HARNESS FAIL]");
   failures.forEach((failure) => console.error(`- ${failure}`));
@@ -61,4 +72,3 @@ if (failures.length > 0) {
 }
 
 console.log(`[HARNESS PASS] ${requiredFiles.length + 1}개 파일과 명령 연결을 확인했습니다.`);
-

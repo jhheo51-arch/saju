@@ -182,13 +182,25 @@ test("9개 주제 모두 계정 저장 값으로 받아들이고 다시 읽을 �
       reading: parseInterpretationResponse(reading(topic), topic, koreaDate()),
     };
     let row: Record<string, unknown> | undefined;
-    const query = {
-      select() { return this; },
-      eq() { return this; },
-      maybeSingle() { return Promise.resolve({ data: row, error: null }); },
-      upsert(value: Record<string, unknown>) { row = value; return Promise.resolve({ error: null }); },
-    };
-    const client = { from() { return query; } } as unknown as SupabaseClient;
+    const client = { from() {
+      let mode: "select" | "insert" | "delete" | undefined;
+      let ranged = false;
+      const query = {
+        select() { mode ||= "select"; return this; },
+        eq() { return this; },
+        order() { return this; },
+        limit() { return this; },
+        range() { ranged = true; return this; },
+        insert(value: Record<string, unknown>) { row = { ...value, id: "11111111-1111-4111-8111-111111111111" }; mode = "insert"; return this; },
+        single() { return Promise.resolve({ data: { id: row?.id }, error: null }); },
+        delete() { mode = "delete"; return this; },
+        in() { return this; },
+        then(resolve: (value: { data: unknown; error: null }) => unknown) {
+          return Promise.resolve({ data: mode === "select" ? (ranged ? [] : row ? [row] : []) : null, error: null }).then(resolve);
+        },
+      };
+      return query;
+    } } as unknown as SupabaseClient;
     await saveAccountResult(client, userId, result);
     assert.equal(row?.topic, topic);
     assert.deepEqual(await loadAccountResult(client, userId), result);

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { calculate, InputError, parseQuestion, type Pillar, type SajuChart, type SajuInput } from "../lib/saju/chart";
-import { clearAccountResult, loadAccountResult, saveAccountResult } from "../lib/saju/account-storage";
+import { clearAccountResult, loadAccountResults, saveAccountResult, updateAccountResult, type AccountSavedInterpretation } from "../lib/saju/account-storage";
 import { basicTerms, stemTerms, tenStars } from "../lib/saju/glossary";
 import { isReadingTopic, koreaDate, koreaWeekRange, type Interpretation, type ReadingTopic } from "../lib/saju/interpretation";
 import { getSajuSupabaseClient } from "../lib/saju/supabase-client";
@@ -22,9 +22,10 @@ const glossary = [...basicTerms, ...tenStars, ...stemTerms];
 const inlineGlossary = glossary.filter(({ term }) => !["년주", "일주", "시주"].includes(term));
 
 type SajuTerm = (typeof glossary)[number]["term"];
-type DisplayResult = { chart: SajuChart; topic: ReadingTopic; reading: Interpretation | null; createdAt?: string };
+type DisplayResult = { id?: string; chart: SajuChart; topic: ReadingTopic; reading: Interpretation | null; createdAt?: string };
 type ReadingRequest = SajuInput & { context: PersonalContext };
 type SelectedAvatarStyle = "male" | "female";
+type BirthTimeMode = "exact" | "approximate" | "unknown";
 const yangStemCharacters = "甲丙戊庚壬";
 class ServerMessageError extends Error {}
 
@@ -141,6 +142,7 @@ export default function SajuForm() {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [hasStoredResult, setHasStoredResult] = useState(false);
+  const [accountResults, setAccountResults] = useState<AccountSavedInterpretation[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [accountConfigured, setAccountConfigured] = useState(false);
   const [authBusy, setAuthBusy] = useState(false);
@@ -153,6 +155,8 @@ export default function SajuForm() {
   const [question, setQuestion] = useState("");
   const [questionLoading, setQuestionLoading] = useState(false);
   const [questionError, setQuestionError] = useState("");
+  const [saveQuestionAnswer, setSaveQuestionAnswer] = useState(false);
+  const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>("exact");
   const pending = useRef(false);
   const questionPending = useRef(false);
   const avatarShareRef = useRef<HTMLDivElement | null>(null);
@@ -215,6 +219,7 @@ export default function SajuForm() {
     if (!client) {
       setResult(null);
       setHasStoredResult(false);
+      setAccountResults([]);
       setReady(true);
       return;
     }
@@ -238,18 +243,21 @@ export default function SajuForm() {
       setUser(nextUser);
       setResult(null);
       setHasStoredResult(false);
+      setAccountResults([]);
       setRetryInput(null);
       if (sessionFailed) setAuthError("로그인 상태를 확인하지 못했어요. 다시 로그인해 주세요.");
       else setAuthError("");
 
       if (nextUser) {
         try {
-          const saved = await loadAccountResult(client!, nextUser.id);
+          const savedResults = await loadAccountResults(client!, nextUser.id);
           if (!active || current !== revision) return;
+          setAccountResults(savedResults);
+          const saved = savedResults[0];
           if (saved) {
-            setResult({ chart: saved.chart, topic: saved.topic, reading: saved.reading, createdAt: saved.createdAt });
+            setResult({ id: saved.id, chart: saved.chart, topic: saved.topic, reading: saved.reading, createdAt: saved.createdAt });
             setHasStoredResult(true);
-            setNotice("계정에 저장된 최근 해석을 불러왔어요.");
+            setNotice(`계정의 최근 해석 ${savedResults.length}건을 불러왔어요.`);
           } else {
             setNotice("계정에 저장된 해석이 아직 없어요. 새 해석을 만들어보세요.");
           }
@@ -266,6 +274,7 @@ export default function SajuForm() {
         setUser(null);
         setResult(null);
         setHasStoredResult(false);
+        setAccountResults([]);
         setRetryInput(null);
         setQuestion("");
         setQuestionError("");
@@ -316,6 +325,7 @@ export default function SajuForm() {
         setUser(null);
         setResult(null);
         setHasStoredResult(false);
+        setAccountResults([]);
         setQuestion("");
         setQuestionError("");
         setNotice("로그아웃했어요. 계정의 해석은 이 화면에서 숨겼어요.");
@@ -363,9 +373,12 @@ export default function SajuForm() {
       setRetryInput(null);
       try {
         const saved = { version: 1 as const, createdAt, chart: data.chart, topic: input.topic, reading: data.reading };
-        await saveAccountResult(client, user.id, saved);
+        const id = await saveAccountResult(client, user.id, saved);
+        const stored = { ...saved, id };
+        setResult({ ...next, id });
+        setAccountResults((current) => [stored, ...current.filter((item) => item.id !== id)].slice(0, 10));
         setHasStoredResult(true);
-        setNotice("최근 해석 1건을 계정에 저장했어요.");
+        setNotice("새 해석을 계정 기록에 저장했어요.");
       } catch {
         setNotice("해석은 만들었지만 계정에 저장하지 못했어요. 이전 저장본은 그대로 남아 있을 수 있어요.");
       }
@@ -414,13 +427,21 @@ export default function SajuForm() {
       const nextReading = { ...result.reading, questionAnswer: data.questionAnswer };
       const nextResult = { ...result, reading: nextReading, createdAt };
       setResult(nextResult);
-      try {
-        await saveAccountResult(client, user.id, { version: 1, createdAt, chart: result.chart, topic: result.topic, reading: nextReading });
+      if (saveQuestionAnswer) try {
+        const saved = { version: 1 as const, createdAt, chart: result.chart, topic: result.topic, reading: nextReading };
+        if (result.id) {
+          await updateAccountResult(client, user.id, result.id, saved);
+          setAccountResults((current) => current.map((item) => item.id === result.id ? { ...item, reading: nextReading } : item));
+        } else {
+          const id = await saveAccountResult(client, user.id, saved);
+          setResult({ ...nextResult, id });
+          setAccountResults((current) => [{ ...saved, id }, ...current].slice(0, 10));
+        }
         setHasStoredResult(true);
         setNotice("질문 답변을 최근 사주 결과에 함께 저장했어요.");
       } catch {
         setNotice("답변은 만들었지만 계정에 저장하지 못했어요. 화면을 닫으면 답변이 사라질 수 있어요.");
-      }
+      } else setNotice("질문과 답변은 계정에 저장하지 않았어요.");
     } catch (caught) {
       setQuestionError(caught instanceof ServerMessageError ? caught.message : "질문 답변에 연결하지 못했어요. 다시 시도해 주세요.");
     } finally {
@@ -463,10 +484,12 @@ export default function SajuForm() {
 
     const input: ReadingRequest = {
       date: String(data.get("date") || ""),
-      time: String(data.get("time") || ""),
+      time: birthTimeMode === "exact" ? String(data.get("time") || "") : "",
       calendar: "solar",
       topic: selectedTopic.value,
       context,
+      unknownTime: birthTimeMode === "unknown",
+      ...(birthTimeMode === "approximate" ? { approximateTime: String(data.get("approximateTime") || "") as NonNullable<SajuInput["approximateTime"]> } : {}),
     };
 
     try {
@@ -488,15 +511,18 @@ export default function SajuForm() {
     }
   }
 
-  async function deleteSaved() {
+  async function deleteSaved(resultId: string | null = result?.id || null) {
     if (!user || !accountClient.current) return;
     try {
-      await clearAccountResult(accountClient.current, user.id);
-      setResult(null);
-      setHasStoredResult(false);
+      await clearAccountResult(accountClient.current, user.id, resultId || undefined);
+      const remaining = resultId ? accountResults.filter((item) => item.id !== resultId) : [];
+      setAccountResults(remaining);
+      const next = remaining[0];
+      setResult(next ? { id: next.id, chart: next.chart, topic: next.topic, reading: next.reading, createdAt: next.createdAt } : null);
+      setHasStoredResult(Boolean(next));
       setQuestion("");
       setQuestionError("");
-      setNotice("계정에 저장된 해석을 삭제했어요.");
+      setNotice(resultId ? "선택한 해석을 삭제했어요." : "계정의 사주 해석 기록을 모두 삭제했어요.");
     } catch {
       setError("저장된 해석을 삭제하지 못했어요. 잠시 후 다시 시도해주세요.");
     }
@@ -526,7 +552,7 @@ export default function SajuForm() {
       <section className="account-card" aria-label="로그인과 계정 저장">
         <div>
           <strong>{user ? "로그인되어 있어요" : "사주 해석을 시작하려면 로그인해 주세요"}</strong>
-          <p>{user ? `${user.email || "Google 계정"} · 최근 해석 1건을 계정에 저장합니다.` : "Google 로그인 후 해석을 만들고, 다른 기기에서도 최근 결과를 볼 수 있어요."}</p>
+          <p>{user ? `${user.email || "Google 계정"} · 최근 해석을 최대 10건 저장합니다.` : "Google 로그인 후 해석을 만들고, 다른 기기에서도 최근 결과를 볼 수 있어요."}</p>
         </div>
         {user
           ? <button type="button" className="account-button secondary" onClick={() => void signOut()} disabled={!ready || authBusy}>로그아웃</button>
@@ -534,12 +560,36 @@ export default function SajuForm() {
         {!accountConfigured && ready && <p className="account-error">Google 로그인 연결 설정이 필요해요.</p>}
         {authError && <p className="account-error" role="alert">{authError}</p>}
       </section>
+      {user && accountResults.length > 0 && <section className="history-card" aria-labelledby="history-title">
+        <div className="history-header">
+          <div><span className="eyebrow">계정에만 보이는 기록</span><h2 id="history-title">최근 사주 해석</h2></div>
+          <button type="button" className="delete-button" onClick={() => void deleteSaved(null)}>전체 삭제</button>
+        </div>
+        <ol className="history-list">
+          {accountResults.map((saved) => {
+            const topic = topics.find((item) => item.value === saved.topic)?.label || "나 자신";
+            const active = result?.id === saved.id;
+            return <li key={saved.id}>
+              <button type="button" className={active ? "is-active" : ""} aria-pressed={active} onClick={() => {
+                setResult({ id: saved.id, chart: saved.chart, topic: saved.topic, reading: saved.reading, createdAt: saved.createdAt });
+                setHasStoredResult(true);
+                setQuestion("");
+                setQuestionError("");
+              }}>
+                <strong>{topic} · {saved.chart.dayMaster.korean}{saved.chart.dayMaster.element}</strong>
+                <span>{new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(saved.createdAt))}</span>
+              </button>
+              <button type="button" className="history-delete" aria-label={`${topic} 해석 삭제`} onClick={() => void deleteSaved(saved.id)}>삭제</button>
+            </li>;
+          })}
+        </ol>
+      </section>}
       <section className="input-card" aria-labelledby="input-title">
         <div className="section-heading">
           <span className="section-step">01</span>
           <div>
             <h2 id="input-title">먼저, 나의 기본 정보</h2>
-            <p className="form-intro">양력 생년월일과 정확한 출생시간을 입력하면, 계산 결과를 쉬운 말로 풀어드려요.</p>
+            <p className="form-intro">양력 생년월일을 입력하고 출생시간을 아는 만큼 골라주세요. 시간을 모르면 시주를 임의로 만들지 않고 제한된 풀이를 제공합니다.</p>
           </div>
         </div>
 
@@ -549,11 +599,34 @@ export default function SajuForm() {
               <label htmlFor="date">생년월일</label>
               <input id="date" name="date" type="date" required />
             </div>
-            <div className="field">
+            {birthTimeMode === "exact" && <div className="field">
               <label htmlFor="time">출생시간</label>
               <input id="time" name="time" type="time" required />
-            </div>
+            </div>}
+            {birthTimeMode === "approximate" && <div className="field">
+              <label htmlFor="approximateTime">대략적인 시간대</label>
+              <select id="approximateTime" name="approximateTime" required defaultValue="">
+                <option value="" disabled>시간대를 골라주세요</option>
+                <option value="dawn">새벽 · 00~06시</option>
+                <option value="morning">오전 · 06~12시</option>
+                <option value="afternoon">오후 · 12~18시</option>
+                <option value="evening">저녁 · 18~24시</option>
+              </select>
+            </div>}
           </div>
+
+          <fieldset className="birth-time-mode">
+            <legend>출생시간을 얼마나 알고 있나요?</legend>
+            <label className="field" htmlFor="birthTimeMode">
+              <span className="sr-only">출생시간 정확도</span>
+              <select id="birthTimeMode" name="birthTimeMode" value={birthTimeMode} onChange={(event) => setBirthTimeMode(event.target.value as BirthTimeMode)}>
+                <option value="exact">정확히 알아요</option>
+                <option value="approximate">대략 알아요</option>
+                <option value="unknown">잘 모르겠어요</option>
+              </select>
+            </label>
+            {birthTimeMode !== "exact" && <p className="field-hint">시주는 결과에서 제외됩니다. 밤 11시 전후 출생이라면 일주도 달라질 수 있어 세부 해석에는 한계가 있어요.</p>}
+          </fieldset>
 
           <fieldset className="topic-field">
             <legend>지금 궁금한 주제</legend>
@@ -587,6 +660,7 @@ export default function SajuForm() {
             </div>
           </div>
           <p className="field-hint">두 선택은 사주 계산값을 바꾸지 않고, 생활 장면과 작은 행동의 초점만 맞춰줘요.</p>
+          <p className="privacy-note"><strong>개인정보 안내</strong> 생년월일과 출생시간은 계산할 때만 사용하고 계정에는 저장하지 않아요. 계정에는 계산된 사주 결과와 해석 문장만 최대 10건 저장되며 언제든 삭제할 수 있어요.</p>
 
           {!user && ready && <p className="login-required-hint" id="login-required-hint">위의 `Google로 로그인`을 먼저 눌러주세요. 로그인 전에는 해석을 만들거나 저장된 결과를 볼 수 없어요.</p>}
 
@@ -606,14 +680,15 @@ export default function SajuForm() {
                 <p className="eyebrow">{result.reading ? "나의 사주 이야기" : "사주 계산 완료"}</p>
                 <h2 id="preview-title">{result.reading ? "쉽게 읽는 나의 사주" : "해석을 준비하고 있어요"}</h2>
                 <p>전통적인 사주 상징을 재미와 자기 성찰을 위한 이야기로 풀었습니다. 성격이나 미래를 확정하는 결과는 아니에요.</p>
-                {result.reading && hasStoredResult && <button type="button" className="delete-button" onClick={() => void deleteSaved()}>저장된 결과 삭제</button>}
+                {result.reading && hasStoredResult && <button type="button" className="delete-button" onClick={() => void deleteSaved(result.id)}>이 결과 삭제</button>}
               </div>
             </div>
 
             <section className="chart-basis" aria-label="이번 풀이에 사용한 사주 정보">
               <p className="chart-basis-title">이번 풀이의 근거</p>
+              {result.chart.timeBasis !== "exact" && <p className="time-limitation" role="note"><strong>출생시간 제한 풀이</strong>{result.chart.timeNote}</p>}
               <div className="chart-basis-layout">
-                <div className="element-radar-basis"><span>여덟 글자의 <TermHelp term="오행" id="basis-elements-help" /></span><ElementRadar values={result.chart.elements} /><ElementCountSummary values={result.chart.elements} /></div>
+                <div className="element-radar-basis"><span>{result.chart.pillars.length * 2}개 글자의 <TermHelp term="오행" id="basis-elements-help" /></span><ElementRadar values={result.chart.elements} /><ElementCountSummary values={result.chart.elements} /></div>
                 <div className="chart-basis-facts">
                   <div className="chart-basis-fact day-master-fact">
                     <span>나를 대표하는 글자 · <TermHelp term="일간" id="basis-day-master-help" /></span>
@@ -636,10 +711,10 @@ export default function SajuForm() {
                   </div>
                 </div>
               </div>
-              <p className="chart-basis-note">오행 숫자는 글자 수예요. 이것만으로 성격의 강약이나 미래를 정할 수는 없어요.</p>
+              <p className="chart-basis-note">오행 숫자는 현재 계산에 포함된 글자 수예요. 이것만으로 성격의 강약이나 미래를 정할 수는 없어요.</p>
               {chartContext && <div className="traditional-context-facts" aria-label="추가로 계산한 음양과 계절 정보">
                 <article>
-                  <span>여덟 글자의 <TermHelp term="음양" id="basis-yinyang-help" /></span>
+                  <span>{result.chart.pillars.length * 2}개 글자의 <TermHelp term="음양" id="basis-yinyang-help" /></span>
                   <strong>음 {chartContext.yinYang.yin} · 양 {chartContext.yinYang.yang}</strong>
                   <small>두 흐름의 글자 수예요. 어느 쪽이 더 좋다는 뜻은 아니에요.</small>
                 </article>
@@ -649,7 +724,9 @@ export default function SajuForm() {
                   <small>실제 출생지의 날씨가 아니라 월지로 나눈 전통 달력 구간이에요.</small>
                 </article>
               </div>}
-              <YongshinSummary chart={result.chart} />
+              {result.chart.timeBasis === "exact"
+                ? <YongshinSummary chart={result.chart} />
+                : <p className="time-limitation">시주가 없는 제한 풀이에서는 용신·희신·기신 계산을 표시하지 않아요.</p>}
             </section>
 
             {contextLabels && <section className="context-summary" aria-label="이번 풀이에 반영한 선택">
@@ -919,14 +996,21 @@ export default function SajuForm() {
                   <small id="saju-question-count">{question.length}/200</small>
                 </div>
               </div>
+              <label className="question-save-choice">
+                <input type="checkbox" checked={saveQuestionAnswer} onChange={(event) => setSaveQuestionAnswer(event.target.checked)} />
+                <span>이 질문의 답변을 현재 계정 결과에 저장하기 <small>질문 원문은 저장하지 않아요.</small></span>
+              </label>
               {questionError && <p className="question-error" role="alert">{questionError}</p>}
               <button type="submit" disabled={questionLoading}>{questionLoading ? "답변을 만들고 있어요…" : result.reading.questionAnswer ? "새 질문으로 답변 바꾸기" : "질문 답변 받기"}</button>
             </form>
 
             {result.reading.questionAnswer && <article className="question-answer" aria-live="polite">
               <span>질문에 대한 답</span>
+              {result.reading.questionAnswer.focus && <p className="question-answer-focus"><strong>지금 고민의 핵심</strong>{result.reading.questionAnswer.focus}</p>}
               {result.reading.questionAnswer.basis && <p className="question-answer-basis"><strong>이 답을 읽은 단서</strong><span className="question-answer-basis-text"><ExplainedText text={result.reading.questionAnswer.basis} id="question-basis" pillars={result.chart.pillars} /></span></p>}
               <p><ExplainedText text={result.reading.questionAnswer.answer} id="question-answer" pillars={result.chart.pillars} /></p>
+              {result.reading.questionAnswer.criteria && <div className="question-answer-criteria"><strong>선택할 때 확인할 기준</strong><ol>{result.reading.questionAnswer.criteria.map((criterion) => <li key={criterion}>{criterion}</li>)}</ol></div>}
+              {result.reading.questionAnswer.caution && <p className="question-answer-caution"><strong>반대 모습도 확인하세요</strong>{result.reading.questionAnswer.caution}</p>}
               <div className="fortune-action">
                 <strong>지금 해볼 작은 행동</strong>
                 <p><ExplainedText text={result.reading.questionAnswer.action} id="question-action" pillars={result.chart.pillars} /></p>

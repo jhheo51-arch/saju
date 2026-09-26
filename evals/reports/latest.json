@@ -1,7 +1,7 @@
 {
   "summary": {
-    "total": 7,
-    "passed": 7,
+    "total": 10,
+    "passed": 10,
     "failed": 0
   },
   "results": [
@@ -30,7 +30,8 @@
       "actualCodes": [
         "BASIS_FORMAT",
         "BASIS_MISMATCH",
-        "CONTEXT_NOT_VISIBLE"
+        "CONTEXT_NOT_VISIBLE",
+        "VAGUE_ACTION"
       ],
       "missingCodes": []
     },
@@ -106,7 +107,53 @@
       "actualCodes": [
         "ANSWER_LENGTH",
         "ANSWER_PARAGRAPHS",
-        "CONTEXT_NOT_VISIBLE"
+        "CONTEXT_NOT_VISIBLE",
+        "VAGUE_ACTION"
+      ],
+      "missingCodes": []
+    },
+    {
+      "id": "reject-unsupported-calculation",
+      "description": "입력에 없는 대운·합충 계산을 만든 답변을 거절",
+      "passed": true,
+      "expectedStatus": "FAIL",
+      "actualStatus": "FAIL",
+      "expectedCodes": [
+        "UNSUPPORTED_CALCULATION"
+      ],
+      "actualCodes": [
+        "CONTEXT_NOT_VISIBLE",
+        "UNSUPPORTED_CALCULATION"
+      ],
+      "missingCodes": []
+    },
+    {
+      "id": "reject-repeated-sentence",
+      "description": "분량을 채우기 위해 같은 문장을 반복한 답변을 거절",
+      "passed": true,
+      "expectedStatus": "FAIL",
+      "actualStatus": "FAIL",
+      "expectedCodes": [
+        "REPEATED_SENTENCE"
+      ],
+      "actualCodes": [
+        "CONTEXT_NOT_VISIBLE",
+        "REPEATED_SENTENCE"
+      ],
+      "missingCodes": []
+    },
+    {
+      "id": "reject-vague-action",
+      "description": "시점·횟수·대상이 없는 모호한 행동을 거절",
+      "passed": true,
+      "expectedStatus": "FAIL",
+      "actualStatus": "FAIL",
+      "expectedCodes": [
+        "VAGUE_ACTION"
+      ],
+      "actualCodes": [
+        "CONTEXT_NOT_VISIBLE",
+        "VAGUE_ACTION"
       ],
       "missingCodes": []
     }

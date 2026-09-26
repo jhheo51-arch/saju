@@ -29,7 +29,7 @@ export function traditionalContextForChart(chart: SajuChart): TraditionalContext
     else if (yinBranches.has(pillar.branch)) yin++;
     else throw new Error("지지의 음양을 확인할 수 없습니다.");
   }
-  if (yin + yang !== 8) throw new Error("여덟 글자의 음양 합계가 올바르지 않습니다.");
+  if (yin + yang !== chart.pillars.length * 2) throw new Error("사주 글자의 음양 합계가 올바르지 않습니다.");
 
   const monthPillar = chart.pillars[1];
   const season = Object.values(seasons).find((item) => item.branches.includes(monthPillar.branch));
