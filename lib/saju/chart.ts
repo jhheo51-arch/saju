@@ -12,8 +12,10 @@ export type SajuInput = {
   unknownTime?: boolean;
 };
 
+export type PillarLabel = "년주" | "월주" | "일주" | "시주";
+
 export type Pillar = {
-  label: string;
+  label: PillarLabel;
   text: string;
   korean: string;
   stem: string;
@@ -38,6 +40,18 @@ export class InputError extends Error {
     super(message);
     this.field = field;
   }
+}
+
+export function parseQuestion(value: unknown, required = false): string {
+  if (value === undefined || value === null || value === "") {
+    if (required) throw new InputError("궁금한 점을 입력해주세요.", "question");
+    return "";
+  }
+  if (typeof value !== "string") throw new InputError("질문은 글자로 입력해주세요.", "question");
+  const question = value.trim();
+  if (required && !question) throw new InputError("궁금한 점을 입력해주세요.", "question");
+  if (question.length > 200) throw new InputError("질문은 200자까지 입력할 수 있어요.", "question");
+  return question;
 }
 
 const stems = [..."甲乙丙丁戊己庚辛壬癸"];
@@ -122,12 +136,7 @@ export function validateInput(raw: SajuInput): SajuInput {
     throw new InputError("태어난 시각을 정확히 입력해주세요.", "time");
   if (raw.topic !== "general" && !isReadingTopic(raw.topic))
     throw new InputError("풀이 주제를 선택해주세요.", "topic");
-  if (raw.question !== undefined && typeof raw.question !== "string")
-    throw new InputError("질문은 글자로 입력해주세요.", "question");
-
-  const question = (raw.question || "").trim();
-  if (question.length > 200)
-    throw new InputError("질문은 200자까지 입력할 수 있어요.", "question");
+  const question = parseQuestion(raw.question);
 
   return {
     date,
@@ -139,7 +148,7 @@ export function validateInput(raw: SajuInput): SajuInput {
   };
 }
 
-function pillar(label: string, text: string): Pillar {
+function pillar(label: PillarLabel, text: string): Pillar {
   const [stem, branch] = [...text];
   return {
     label,

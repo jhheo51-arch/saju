@@ -27,8 +27,9 @@ test("계정 연결이 준비되지 않아도 비로그인 해석 입력 화면�
   const html = renderToStaticMarkup(createElement(SajuForm));
   const googleButton = html.match(/<button\b[^>]*class="account-button"[^>]*>Google로 로그인<\/button>/)?.[0];
   assert.match(html, /Google로 로그인/);
-  assert.match(html, /로그인 없이도 해석할 수 있습니다/);
-  assert.match(html, /나의 사주 해석 보기|화면을 준비하고 있어요/);
+  assert.match(html, /Google 로그인 후 해석을 만들고/);
+  assert.match(html, /Google 로그인 후 해석할 수 있어요|화면을 준비하고 있어요/);
+  assert.doesNotMatch(html, /로그인 없이도 해석할 수 있습니다/);
   assert.match(html, /<form\b[^>]*method="post"/);
   // 서버가 HTML을 보낸 직후에는 인증 정보가 아직 확정되지 않아 버튼을 누를 수 없어야 합니다.
   assert.ok(googleButton);

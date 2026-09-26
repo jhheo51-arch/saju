@@ -38,14 +38,34 @@ function reading(topic: string) {
 }
 
 function modelResponse(topic: string): Response {
+  const details = {
+    basis: "신금 일간과 무자(토·수) 월주를 참고했어요. 음 4·양 4이며 겨울(자월)에 해당해요.",
+    meaning: "계산된 두 단서의 상징을 함께 연결해 읽어볼 수 있어요.",
+    scene: "선택한 주제에서 생각을 짧게 정리하는 장면을 떠올릴 수 있어요.",
+    balance: "이 단서만으로 실제 성격이나 행동을 확정할 수는 없어요.",
+    action: "오늘 할 수 있는 작은 행동 하나를 정해보세요.",
+  };
   const weekly = {
     ...koreaWeekRange(koreaDate()),
     headline: "이번 주",
     body: "이번 주에는 작은 행동 하나를 정해 보세요.",
+    action: "이번 주에 안부를 건네 보세요.",
+    days: Array.from({ length: 7 }, (_, index) => {
+      const day = new Date(`${koreaWeekRange(koreaDate()).startDate}T00:00:00Z`);
+      day.setUTCDate(day.getUTCDate() + index);
+      const date = day.toISOString().slice(0, 10);
+      return { date, body: date === koreaDate() ? reading(topic).today.body : `${index + 1}번째 날에는 생각을 정리해 보세요.` };
+    }),
   };
   return Response.json({
     status: "completed",
-    steps: [{ type: "model_output", content: [{ type: "text", text: JSON.stringify({ ...reading(topic), weekly }) }] }],
+    steps: [{ type: "model_output", content: [{ type: "text", text: JSON.stringify({
+      ...reading(topic),
+      today: { ...reading(topic).today, action: "오늘 작은 행동 하나를 해보세요." },
+      personality: { ...reading(topic).personality, ...details },
+      topic: { ...reading(topic).topic, ...details },
+      weekly,
+    }) }] }],
   });
 }
 
@@ -57,6 +77,38 @@ class MemoryStorage implements Storage {
   key(index: number) { return [...this.values.keys()][index] ?? null; }
   removeItem(key: string) { this.values.delete(key); }
   setItem(key: string, value: string) { this.values.set(key, value); }
+}
+
+function apiRequest(body: unknown): Request {
+  return new Request("http://localhost:3000/api/interpret", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer topics-test-token" },
+    body: JSON.stringify(body),
+  });
+}
+
+async function withAuthenticatedFetch(mock: typeof fetch, run: () => Promise<void>): Promise<void> {
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const previousSupabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  process.env.GEMINI_API_KEY = "unit-test-secret";
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://topics-test.supabase.co";
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "topics-test-publishable-key";
+  globalThis.fetch = async (url, init) => String(url).includes("/auth/v1/user")
+    ? Response.json({ id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" })
+    : mock(url, init);
+  try {
+    await run();
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+    if (previousUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    else process.env.NEXT_PUBLIC_SUPABASE_URL = previousUrl;
+    if (previousSupabaseKey === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    else process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = previousSupabaseKey;
+  }
 }
 
 test("확정한 9개 관심 주제가 화면에서 각각 한 번씩 선택 가능하다", () => {
@@ -113,12 +165,10 @@ test("옛 '나 자신' 저장 결과는 복원하지만 새 선택지와 새 해
   const labels: string[] = readingTopics.map((topic) => topic.label);
   assert.ok(!labels.includes("나 자신"));
 
-  const response = await POST(new Request("http://localhost:3000/api/interpret", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...baseInput, topic: "self" }),
-  }));
-  assert.equal(response.status, 400);
+  await withAuthenticatedFetch(async () => { throw new Error("Gemini 호출 금지"); }, async () => {
+    const response = await POST(apiRequest({ ...baseInput, topic: "self" }));
+    assert.equal(response.status, 400);
+  });
 });
 
 test("9개 주제 모두 계정 저장 값으로 받아들이고 다시 읽을 수 있다", async () => {
@@ -146,13 +196,9 @@ test("9개 주제 모두 계정 저장 값으로 받아들이고 다시 읽을 �
 });
 
 test("9개 주제별 Gemini 요청은 정확한 주제 초점과 공통 안전 규칙을 사용한다", async () => {
-  const previousFetch = globalThis.fetch;
-  const previousKey = process.env.GEMINI_API_KEY;
-  process.env.GEMINI_API_KEY = "unit-test-secret";
-  try {
-    for (const [topic, label] of expectedTopics) {
+  for (const [topic, label] of expectedTopics) {
       let calls = 0;
-      globalThis.fetch = async (_url, init) => {
+      await withAuthenticatedFetch(async (_url, init) => {
         calls++;
         const outbound = JSON.parse(String(init?.body));
         const input = JSON.parse(outbound.input);
@@ -160,49 +206,35 @@ test("9개 주제별 Gemini 요청은 정확한 주제 초점과 공통 안전 �
         assert.deepEqual(outbound.response_format.schema.properties.topic.properties.kind.enum, expectedTopics.map(([value]) => value));
         assert.match(outbound.system_instruction, new RegExp(`이번 관심 주제는 '${label}'`));
         assert.match(outbound.system_instruction, /중학생/);
-        assert.match(outbound.system_instruction, /personality\.body.*신금/);
-        assert.match(outbound.system_instruction, /topic\.body.*무자/);
+        assert.match(outbound.system_instruction, /personality\.basis.*신금/);
+        assert.match(outbound.system_instruction, /topic\.basis.*무자/);
+        assert.match(outbound.system_instruction, /음 4·양 4.*겨울\(자월\)/);
+        assert.match(outbound.system_instruction, /음양 개수만으로.*판단하지 마세요/);
+        assert.deepEqual(input.chart.traditionalContext, {
+          yinYang: { yin: 4, yang: 4 },
+          season: { name: "겨울", monthBranch: "子", monthLabel: "자월" },
+        });
         assert.match(outbound.system_instruction, /미래의 정확한 날짜나 합격·수익을 예언하지 마세요/);
         if (topic === "health") assert.match(outbound.system_instruction, /질병이나 건강 상태를 예측·진단하지 말고/);
         assert.doesNotMatch(JSON.stringify(outbound), /2005-12-23|08:37|unit-test-secret/);
         return modelResponse(topic);
-      };
-      const response = await POST(new Request("http://localhost:3000/api/interpret", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...baseInput, topic }),
-      }));
-      assert.equal(response.status, 200, `${topic} 성공`);
-      assert.equal((await response.json()).reading.topic.kind, topic);
-      assert.equal(calls, 1);
-    }
-  } finally {
-    globalThis.fetch = previousFetch;
-    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
-    else process.env.GEMINI_API_KEY = previousKey;
+      }, async () => {
+        const response = await POST(apiRequest({ ...baseInput, topic }));
+        assert.equal(response.status, 200, `${topic} 성공`);
+        assert.equal((await response.json()).reading.topic.kind, topic);
+        assert.equal(calls, 1);
+      });
   }
 });
 
 test("선택한 주제와 다른 모델 응답은 9개 주제 모두에서 저장 가능한 결과로 반환하지 않는다", async () => {
-  const previousFetch = globalThis.fetch;
-  const previousKey = process.env.GEMINI_API_KEY;
-  process.env.GEMINI_API_KEY = "unit-test-secret";
-  try {
-    for (let index = 0; index < expectedTopics.length; index++) {
+  for (let index = 0; index < expectedTopics.length; index++) {
       const topic = expectedTopics[index][0];
       const other = expectedTopics[(index + 1) % expectedTopics.length][0];
-      globalThis.fetch = async () => modelResponse(other);
-      const response = await POST(new Request("http://localhost:3000/api/interpret", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...baseInput, topic }),
-      }));
-      assert.equal(response.status, 502, `${topic}에 ${other} 응답 거절`);
-      assert.equal("reading" in await response.json(), false);
-    }
-  } finally {
-    globalThis.fetch = previousFetch;
-    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
-    else process.env.GEMINI_API_KEY = previousKey;
+      await withAuthenticatedFetch(async () => modelResponse(other), async () => {
+        const response = await POST(apiRequest({ ...baseInput, topic }));
+        assert.equal(response.status, 502, `${topic}에 ${other} 응답 거절`);
+        assert.equal("reading" in await response.json(), false);
+      });
   }
 });

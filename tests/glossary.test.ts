@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 import { basicTerms, stemTerms, tenStars } from "../lib/saju/glossary";
 import { calculate } from "../lib/saju/chart";
 
-test("기본 용어 7개와 십성 10개를 제공한다", () => {
-  assert.equal(basicTerms.length, 7);
+test("기본 용어 11개와 십성 10개를 제공한다", () => {
+  assert.equal(basicTerms.length, 11);
   assert.equal(tenStars.length, 10);
   assert.equal(stemTerms.length, 10);
 });
@@ -13,7 +13,7 @@ test("기본 용어 7개와 십성 10개를 제공한다", () => {
 test("요청한 어려운 용어를 모두 설명한다", () => {
   const basicNames = new Set<string>(basicTerms.map(({ term }) => term));
   const starNames = new Set<string>(tenStars.map(({ term }) => term));
-  for (const term of ["천간", "지지", "일간", "월주", "오행", "음양", "십성"])
+  for (const term of ["천간", "지지", "일간", "년주", "월주", "일주", "시주", "오행", "음양", "십성", "천을귀인"])
     assert.ok(basicNames.has(term), `${term} 기본 설명 누락`);
   for (const term of ["편관", "비견", "편인", "정인", "식신"])
     assert.ok(starNames.has(term), `${term} 십성 설명 누락`);
@@ -81,6 +81,15 @@ test("월주는 태어난 달의 두 글자임을 쉽게 설명한다", () => {
   assert.match(meaning, /성격을 정하지/);
 });
 
+test("년주·일주·시주는 각각 태어난 해·날·시간의 두 글자로 설명한다", () => {
+  for (const [term, time] of [["년주", "해"], ["일주", "날"], ["시주", "시간"]] as const) {
+    const meaning = basicTerms.find((entry) => entry.term === term)?.meaning;
+    assert.ok(meaning, `${term} 뜻 누락`);
+    assert.match(meaning, new RegExp(`태어난 ${time}`));
+    assert.match(meaning, /두 글자/);
+  }
+});
+
 test("표시할 천간과 지지가 계산된 각 기둥의 두 글자와 일치한다", () => {
   const chart = calculate({
     date: "2005-12-23",
@@ -105,19 +114,57 @@ test("별도 용어 사전 대신 원자료의 천간·지지에서 뜻을 열 �
   assert.match(source, /\{meaning\}/);
 });
 
-test("생성된 해석에 등장하는 무토를 포함한 천간 이름을 클릭형 설명과 연결한다", () => {
+test("생성된 해석의 요약과 다섯 세부 항목을 모두 클릭형 설명과 연결한다", () => {
   const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
   assert.match(source, /import \{[^}]*stemTerms[^}]*\} from "\.\.\/lib\/saju\/glossary"/);
   assert.match(source, /const glossary = \[\.\.\.basicTerms, \.\.\.tenStars, \.\.\.stemTerms\]/);
-  assert.match(source, /text\.split\(termPattern\)/);
+  assert.match(source, /text\.split\(explainedPattern\)/);
   assert.match(source, /known \? <TermHelp/);
-  assert.match(source, /<ExplainedText text=\{result\.reading\.personality\.body\}/);
+  assert.match(source, /<ExplainedText text=\{section\.body\}/);
+  for (const [key, label] of [
+    ["basis", "계산 근거"],
+    ["meaning", "쉬운 뜻"],
+    ["scene", "생활에서는"],
+    ["balance", "균형 있게 보기"],
+    ["action", "작은 행동"],
+  ]) {
+    assert.match(source, new RegExp(`${key}: "${label}"`));
+  }
+  assert.match(source, /Object\.keys\(readingDetailLabels\)[\s\S]*\.map\(\(key\)/);
+  assert.match(source, /<ExplainedText text=\{section\.details!\[key\]\}/);
+  assert.match(source, /<ReadingCardContent section=\{result\.reading\.personality\}/);
+  assert.match(source, /<ReadingCardContent section=\{result\.reading\.topic\}/);
 });
 
-test("계산 근거의 일간·월주·오행과 일간 이름에도 클릭형 뜻풀이가 있다", () => {
+test("무자·을유 같은 실제 네 기둥 이름은 풀이·아바타·운세 어디서든 눌러 설명을 연다", () => {
+  const chart = calculate({ date: "2005-12-23", time: "08:37", calendar: "solar", topic: "general" });
+  const names = chart.pillars.map((pillar) => pillar.korean);
+  assert.ok(names.includes("을유"), "검사 사례의 을유 누락");
+  assert.ok(names.includes("무자"), "검사 사례의 무자 누락");
+
+  const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
+  assert.match(source, /const pillarByName = new Map\(pillars\.map\(\(pillar\) => \[pillar\.korean, pillar\]\)\)/);
+  assert.match(source, /const inlineGlossary = glossary\.filter\(\(\{ term \}\) => !\["년주", "일주", "시주"\]\.includes\(term\)\)/);
+  assert.match(source, /inlineGlossary\.map\(\(entry\) => entry\.term\)/);
+  assert.match(source, /if \(pillar\) return <PillarHelp/);
+  assert.match(source, /function topicParticle\(word: string\): "은" \| "는"/);
+  assert.match(source, /\$\{pillar\.korean\}\$\{topicParticle\(pillar\.korean\)\} 사주의 한 기둥/);
+  assert.match(source, /위 글자 \$\{pillar\.korean\[0\]\}\(\$\{pillar\.stem\}\)/);
+  assert.match(source, /아래 글자 \$\{pillar\.korean\[1\]\}\(\$\{pillar\.branch\}\)/);
+  assert.match(source, /<ReadingCardContent[^>]*pillars=\{result\.chart\.pillars\}/);
+  assert.match(source, /<ExplainedText text=\{palaceStory\.duty\}[^>]*pillars=\{result\.chart\.pillars\}/);
+  assert.match(source, /<ExplainedText text=\{result\.reading\.today\.body\}[^>]*pillars=\{result\.chart\.pillars\}/);
+  assert.match(source, /<ExplainedText text=\{result\.reading\.weekly\.body\}[^>]*pillars=\{result\.chart\.pillars\}/);
+  assert.match(source, /<PillarHelp pillar=\{result\.chart\.pillars\[1\]\} id="fortune-month-pillar-name"/);
+  assert.match(source, /<TermHelp term=\{item\.label\} id=\{`\$\{item\.label\}-meaning-help`\}/);
+});
+
+test("계산 근거의 일간·월주·오행과 일간·월주 이름에도 클릭형 뜻풀이가 있다", () => {
   const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
   assert.match(source, /<TermHelp term="일간" id="basis-day-master-help"/);
   assert.match(source, /<TermHelp term="월주" id="basis-month-pillar-help"/);
   assert.match(source, /<TermHelp term="오행" id="basis-elements-help"/);
   assert.match(source, /<ExplainedText text=\{`\$\{result\.chart\.dayMaster\.korean\}\$\{result\.chart\.dayMaster\.element\}`\}/);
+  assert.match(source, /<PillarHelp pillar=\{result\.chart\.pillars\[1\]\} id="basis-month-pillar-name"/);
+  assert.match(source, /aria-label=\{`\$\{pillar\.korean\} 뜻 보기`\}/);
 });
