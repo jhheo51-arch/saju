@@ -46,3 +46,4 @@ Spec을 만들면 아래 목록에 파일명을 추가합니다. 구현과 검�
 - [x] `036-narrative-saju-reading.md` — 계산 단서를 상담처럼 자연스럽고 구체적인 이야기로 연결하는 전체 풀이 개선(자동·빌드 확인, 로그인 사용자 화면 확인 전)
 - [x] `037-saju-evaluation-harness.md` — 대표 답변 데이터셋과 품질 판정·리포트·CI를 잇는 평가 하네스(자동·빌드·다이어그램 검사 완료)
 - [x] `038-explicit-harness-system.md` — 프로젝트 계약·자체 검사·CI·피드백 루프를 명시적으로 연결하고 인포그래픽으로 시각화(자동·빌드·다이어그램 검사 완료)
+- [x] `039-visualization-method-comparison.md` — Data·Figma·GitHub 스킬로 하네스 시각화 3종을 만들고 비교
