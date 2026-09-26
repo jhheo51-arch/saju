@@ -48,3 +48,4 @@ Spec을 만들면 아래 목록에 파일명을 추가합니다. 구현과 검�
 - [x] `038-explicit-harness-system.md` — 프로젝트 계약·자체 검사·CI·피드백 루프를 명시적으로 연결하고 인포그래픽으로 시각화(자동·빌드·다이어그램 검사 완료)
 - [x] `039-visualization-method-comparison.md` — Data·Figma·GitHub 스킬로 하네스 시각화 3종을 만들고 비교
 - [x] `040-reference-harness-visual.md` — 첨부 레퍼런스와 같은 밀도·구도의 단일 하네스 그림으로 재작성
+- [x] `041-harness-eval-remediation.md` — 하네스 평가의 Ship 4건과 PRD Mixed 정리 계획 반영

@@ -20,9 +20,6 @@
 
 ## 기술 스택
 
-- Next.js 16, React 19, TypeScript와 App Router를 사용합니다.
-- 패키지 관리와 실행에는 npm을 사용합니다.
-- 사주 계산에는 `lunar-javascript`와 `lib/saju`를 사용합니다.
 - 배포 대상은 Vercel입니다.
 - 특별한 이유를 PRD와 Spec에 기록하지 않았다면 기술 스택을 교체하지 않습니다.
 
