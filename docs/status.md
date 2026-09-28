@@ -60,3 +60,4 @@ Spec을 만들면 아래 목록에 파일명을 추가합니다. 구현과 검�
 - [x] `050-restore-pre-september-28-features.md` — 9월 28일 이전 기존 기능 전체 복구와 오늘 운세 재결합(자동 검사·빌드 완료, 로그인 화면 확인 전)
 - [x] `051-local-supabase-runtime.md` — 로컬 Supabase 자리표시자 오류 복구와 개발용 오늘 운세 중계(자동 검사·빌드 완료, 로그인 화면 확인 전)
 - [x] `052-palace-door-daily-fortune-polish.md` — 궁궐 문 안 한 줄 오늘 운세와 사주·날짜 기반 색·숫자(자동 검사·빌드 완료, 로그인 화면 확인 전)
+- [x] `053-local-gemini-and-door-state.md` — 로컬 Gemini 해석 연결과 첨부 단청 궁궐문·열린 상태 복구(자동 검사·빌드 완료, 참가자 화면 확인 전)

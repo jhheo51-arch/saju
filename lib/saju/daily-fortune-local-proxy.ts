@@ -16,9 +16,9 @@ function localProxyOrigin(): string | null {
 /**
  * Vercel은 Production 비밀값을 로컬로 다시 내려주지 않는다.
  * 개발할 때만 명시적으로 설정한 운영 API로 인증 요청을 중계해,
- * 로컬 브라우저가 실제 서비스와 같은 오늘 운세를 확인하게 한다.
+ * 로컬 브라우저가 실제 서비스와 같은 로그인·해석·오늘 운세를 확인하게 한다.
  */
-export async function proxyDailyFortuneRequest(request: Request): Promise<NextResponse | null> {
+export async function proxyLocalProductionRequest(request: Request): Promise<NextResponse | null> {
   const origin = localProxyOrigin();
   if (!origin) return null;
 
@@ -40,3 +40,6 @@ export async function proxyDailyFortuneRequest(request: Request): Promise<NextRe
     headers: { "Cache-Control": "no-store", "Content-Type": response.headers.get("content-type") || "application/json" },
   });
 }
+
+// 기존 오늘 운세 경로의 이름을 유지해 호출부와 테스트의 호환성을 보장합니다.
+export const proxyDailyFortuneRequest = proxyLocalProductionRequest;
