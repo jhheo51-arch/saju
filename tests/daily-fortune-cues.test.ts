@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
 import { calculate } from "../lib/saju/chart";
 import { dailyFortuneCues } from "../lib/saju/daily-fortune-cues";
@@ -35,4 +35,24 @@ test("저장된 오늘 운세 카드에는 색상 이름·숫자가 있고 빈 �
   assert.match(source, /오늘의 운세 보기/);
   assert.match(css, /\.today-cards\s*\{[^}]*align-items:\s*start;/);
   assert.match(css, /\.palace-door-button\s*\{[^}]*min-height:\s*44px;/);
+});
+
+test("열린 오늘 운세는 무대와 문 그림 모두에 열린 상태를 적용하고 문짝을 변환한다", () => {
+  const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(source, /className=\{`palace-door-stage\$\{dailyDoorOpened \? " is-open" : ""\}`\}/);
+  assert.match(source, /className=\{`palace-door-art\$\{dailyDoorOpened \? " is-open" : ""\}`\}/);
+  assert.match(css, /\.palace-door-stage\.is-open \.palace-door-frame i:first-child,\s*\.palace-door-art\.is-open \.palace-door-frame i:first-child\s*\{[^}]*transform:/);
+  assert.match(css, /\.palace-door-stage\.is-open \.palace-door-frame i:last-child,\s*\.palace-door-art\.is-open \.palace-door-frame i:last-child\s*\{[^}]*transform:/);
+});
+
+test("궁궐 문 양쪽은 지정한 단청 원화를 서로 반대 위치로 사용한다", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const dancheong = new URL("../public/palace-door-dancheong-v01.png", import.meta.url);
+
+  assert.ok(existsSync(dancheong), "지정한 단청 원화 파일이 public에 있어야 합니다.");
+  assert.ok(statSync(dancheong).size > 0, "지정한 단청 원화 파일이 비어 있으면 안 됩니다.");
+  assert.match(css, /\.palace-door-frame i\s*\{[^}]*background-image:\s*url\("\/palace-door-dancheong-v01\.png"\)[^}]*background-position:\s*left center;/);
+  assert.match(css, /\.palace-door-frame i:last-child\s*\{[^}]*background-position:\s*right center;/);
 });

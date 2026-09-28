@@ -770,7 +770,7 @@ export default function SajuForm() {
             <p className="card-index">오늘의 운세 · {dailyFortune.date}</p>
             <div className={`palace-door-stage${dailyDoorOpened ? " is-open" : ""}`}>
               <button type="button" className="palace-door-button" aria-label={dailyDoorOpened ? "열린 궁궐 문 안의 오늘의 운세" : "궁궐 문을 열어 오늘의 운세 보기"} aria-expanded={dailyDoorOpened} aria-controls="daily-palace-fortune" onClick={openDailyDoor}>
-                <span className="palace-door-art" aria-hidden="true">
+                <span className={`palace-door-art${dailyDoorOpened ? " is-open" : ""}`} aria-hidden="true">
                   <span className="palace-door-eaves" />
                   <span className="palace-door-sign">오늘의 기운</span>
                   <span className="palace-door-frame"><i><b /><b /></i><i><b /><b /></i></span>

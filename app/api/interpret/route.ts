@@ -6,6 +6,7 @@ import { parsePersonalContext, personalContextLabels, PersonalContextError, type
 import { traditionalContextFacts } from "../../../lib/saju/traditional-context";
 import { authenticateSajuRequest } from "../../../lib/saju/server-auth";
 import { checkApiRateLimit } from "../../../lib/saju/server-rate-limit";
+import { proxyLocalProductionRequest } from "../../../lib/saju/daily-fortune-local-proxy";
 
 export const runtime = "nodejs";
 
@@ -42,6 +43,8 @@ function modelText(raw: unknown): string | null {
 }
 
 export async function POST(request: Request) {
+  const proxied = await proxyLocalProductionRequest(request);
+  if (proxied) return proxied;
   const contentLength = Number(request.headers.get("content-length"));
   if (Number.isFinite(contentLength) && contentLength > 4096) {
     return NextResponse.json({ error: "입력 내용이 너무 깁니다." }, { status: 413 });
