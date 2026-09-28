@@ -5,6 +5,7 @@ import { koreaDate } from "./interpretation";
 
 type ProfileRow = { user_id: string; chart: unknown; updated_at: string };
 type FortuneRow = { content: unknown; source_profile_updated_at: string };
+type SavedResultRow = { chart: unknown; created_at: string };
 
 export class DailyFortuneServerError extends Error {
   constructor(message: string, readonly status = 503) {
@@ -49,11 +50,33 @@ export async function saveDailyFortuneProfile(userId: string, input: Pick<SajuIn
   return chart;
 }
 
-export async function ensureDailyFortune(userId: string, date = koreaDate()): Promise<DailyFortune | null> {
-  const admin = dailyFortuneAdmin();
+async function loadDailyFortuneProfile(admin: SupabaseClient, userId: string): Promise<ProfileRow | null> {
   const { data: profile, error: profileError } = await admin.from("user_saju_profiles")
     .select("user_id,chart,updated_at").eq("user_id", userId).maybeSingle<ProfileRow>();
   if (profileError) throw new DailyFortuneServerError("기본 사주 정보를 불러오지 못했어요.");
+  if (profile) return profile;
+
+  // 오늘 운세 기능 전부터 저장한 해석은 이미 원본 생년월일·시간 없이 계산된 차트만 보관한다.
+  // 그 차트를 기준표로 한 번 옮겨, 기존 로그인 사용자도 새 운세를 바로 받을 수 있게 한다.
+  const { data: savedResult, error: savedResultError } = await admin.from("saju_results")
+    .select("chart,created_at").eq("user_id", userId).maybeSingle<SavedResultRow>();
+  if (savedResultError) throw new DailyFortuneServerError("계정의 저장된 사주 정보를 불러오지 못했어요.");
+  if (!savedResult) return null;
+  if (!isChart(savedResult.chart)) throw new DailyFortuneServerError("계정의 저장된 사주 정보를 확인하지 못했어요.");
+
+  const migratedProfile: ProfileRow = {
+    user_id: userId,
+    chart: savedResult.chart,
+    updated_at: savedResult.created_at,
+  };
+  const { error: saveError } = await admin.from("user_saju_profiles").upsert(migratedProfile, { onConflict: "user_id" });
+  if (saveError) throw new DailyFortuneServerError("기본 사주 정보를 준비하지 못했어요.");
+  return migratedProfile;
+}
+
+export async function ensureDailyFortune(userId: string, date = koreaDate()): Promise<DailyFortune | null> {
+  const admin = dailyFortuneAdmin();
+  const profile = await loadDailyFortuneProfile(admin, userId);
   if (!profile) return null;
   if (!isChart(profile.chart)) throw new DailyFortuneServerError("기본 사주 정보를 확인하지 못했어요.");
 

@@ -75,7 +75,7 @@ export default function SajuForm() {
     return error ? null : data.session?.access_token || null;
   }
 
-  async function loadDailyFortune(showDoorWhenReady = false) {
+  async function loadDailyFortune() {
     if (!user) return;
     const token = await sessionToken();
     if (!token) return;
@@ -93,9 +93,10 @@ export default function SajuForm() {
       const fortune = data.fortune as DailyFortune;
       setDailyFortune(fortune);
       const seenKey = `daily-palace-door:${user.id}:${fortune.date}`;
-      const seen = window.sessionStorage.getItem(seenKey) === "opened";
-      setDailyDoorVisible(showDoorWhenReady || !seen);
-      setDailyDoorOpened(false);
+      const seen = window.localStorage.getItem(seenKey) === "opened";
+      setDailyDoorVisible(true);
+      // 처음에는 닫힌 문을 보여주고, 같은 날 다시 방문하면 열린 카드와 추천을 바로 보여준다.
+      setDailyDoorOpened(seen);
     } catch (caught) {
       setDailyFortuneError(caught instanceof Error ? caught.message : "오늘의 운세를 불러오지 못했어요.");
     } finally {
@@ -127,7 +128,7 @@ export default function SajuForm() {
   function openDailyDoor() {
     if (!dailyFortune || !user || dailyDoorOpened) return;
     setDailyDoorOpened(true);
-    window.sessionStorage.setItem(`daily-palace-door:${user.id}:${dailyFortune.date}`, "opened");
+    window.localStorage.setItem(`daily-palace-door:${user.id}:${dailyFortune.date}`, "opened");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.setTimeout(() => dailyFortuneTitleRef.current?.focus(), reducedMotion ? 0 : 340);
   }

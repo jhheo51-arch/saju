@@ -62,7 +62,8 @@ test("사용자 API는 인증된 본인 운세만 no-store로 읽고, 기본 정
 
 test("첫 방문 궁궐 문은 접근 가능하고, 한 번 연 뒤에는 기존 오늘·이번 주 영역을 계속 쓴다", () => {
   assert.match(form, /daily-palace-door:\$\{user\.id\}:\$\{fortune\.date\}/);
-  assert.match(form, /window\.sessionStorage\.setItem/);
+  assert.match(form, /window\.localStorage\.getItem/);
+  assert.match(form, /window\.localStorage\.setItem/);
   assert.match(form, /aria-expanded=\{dailyDoorOpened\}/);
   assert.match(form, /aria-controls="daily-palace-fortune"/);
   assert.match(form, /type="button"/);
