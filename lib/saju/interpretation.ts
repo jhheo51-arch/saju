@@ -5,13 +5,14 @@ export { isReadingTopic } from "./topics";
 export type { ReadingTopic } from "./topics";
 
 type ReadingSection = { headline: string; body: string };
+type WeeklyDayFortune = { date: string; body: string };
 
 export type Interpretation = {
   questionAnswer?: { answer: string; action: string };
   personality: ReadingSection;
   topic: ReadingSection & { kind: ReadingTopic };
   today: ReadingSection & { date: string };
-  weekly?: ReadingSection & { startDate: string; endDate: string };
+  weekly?: ReadingSection & { startDate: string; endDate: string; action?: string; days?: WeeklyDayFortune[] };
 };
 
 export class InvalidInterpretationError extends Error {}
@@ -113,10 +114,27 @@ export function parseInterpretationResponse(raw: unknown, topic: ReadingTopic, d
     if (value.weekly.startDate !== range.startDate || value.weekly.endDate !== range.endDate) {
       throw new InvalidInterpretationError("이번 주 풀이 기간이 일치하지 않습니다.");
     }
+    let days: WeeklyDayFortune[] | undefined;
+    if (value.weekly.days !== undefined) {
+      if (!Array.isArray(value.weekly.days) || value.weekly.days.length !== 7) {
+        throw new InvalidInterpretationError("날짜별 풀이가 일곱 개가 아닙니다.");
+      }
+      const first = new Date(`${range.startDate}T00:00:00Z`);
+      days = value.weekly.days.map((day, index) => {
+        first.setUTCDate(first.getUTCDate() + (index === 0 ? 0 : 1));
+        const expectedDate = first.toISOString().slice(0, 10);
+        if (!isRecord(day) || day.date !== expectedDate) {
+          throw new InvalidInterpretationError("날짜별 풀이 날짜가 일치하지 않습니다.");
+        }
+        return { date: expectedDate, body: readingText(day.body, 320) };
+      });
+    }
     weekly = {
       ...range,
       headline: readingText(value.weekly.headline, 80),
       body: readingText(value.weekly.body, 800),
+      ...(value.weekly.action !== undefined ? { action: readingText(value.weekly.action, 240) } : {}),
+      ...(days ? { days } : {}),
     };
   }
   let questionAnswer: Interpretation["questionAnswer"];

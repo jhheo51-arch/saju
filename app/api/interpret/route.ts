@@ -17,7 +17,7 @@ const responseSchema = {
     personality: section,
     topic: { type: "object", properties: { kind: { type: "string", enum: readingTopics.map((topic) => topic.value) }, headline: { type: "string" }, body: { type: "string" } }, required: ["kind", "headline", "body"] },
     today: { type: "object", properties: { date: { type: "string" }, headline: { type: "string" }, body: { type: "string" } }, required: ["date", "headline", "body"] },
-    weekly: { type: "object", properties: { startDate: { type: "string" }, endDate: { type: "string" }, headline: { type: "string" }, body: { type: "string" } }, required: ["startDate", "endDate", "headline", "body"] },
+    weekly: { type: "object", properties: { startDate: { type: "string" }, endDate: { type: "string" }, headline: { type: "string" }, body: { type: "string" }, action: { type: "string" }, days: { type: "array", items: { type: "object", properties: { date: { type: "string" }, body: { type: "string" } }, required: ["date", "body"] } } }, required: ["startDate", "endDate", "headline", "body", "action", "days"] },
   },
   required: ["personality", "topic", "today", "weekly"],
 };
@@ -55,6 +55,12 @@ export async function POST(request: Request) {
 
   const date = koreaDate();
   const payload = buildInterpretationPayload(input, chart, date);
+  const monday = new Date(`${payload.week.startDate}T00:00:00Z`);
+  const weekDates = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(monday);
+    day.setUTCDate(day.getUTCDate() + index);
+    return day.toISOString().slice(0, 10);
+  });
   const selectedTopic = readingTopics.find((topic) => topic.value === input.topic)!;
   const dayMasterName = `${chart.dayMaster.korean}${chart.dayMaster.element}`;
   const monthPillarName = chart.pillars[1].korean;
@@ -84,7 +90,8 @@ export async function POST(request: Request) {
           "'능력이 있습니다', '반드시 ~합니다'처럼 성격이나 결과를 확정하는 문장은 피하세요. '이렇게 읽어볼 수 있어요', '이런 모습을 떠올릴 수 있어요'처럼 전통적 상징에 대한 가능한 해석임을 드러내세요.",
           "questionAnswer는 만들지 마세요. 취업·연애·돈 등 미래의 정확한 날짜나 합격·수익을 예언하지 마세요.",
           "today에는 주어진 한국 날짜를 그대로 쓰세요. 선택 주제와 위에서 설명한 실제 사주 단서 하나를 이어 오늘 생각해 볼 점과 작은 행동 제안 하나만 적으세요. 오늘 날짜의 별도 사주나 미래 사건·수익을 계산한 척하거나 보장하지 마세요.",
-          "weekly에는 입력 week.startDate와 week.endDate를 정확히 복사하세요. 한국 시간 월요일부터 일요일까지의 이번 주를 한 문단으로 설명하세요. 실제 사주 단서와 선택 주제를 연결해 이번 주에 살펴볼 점과 할 수 있는 작은 행동 하나를 쉬운 한국어로 쓰세요. 특정 요일의 사건·합격·수익·건강 결과를 예언하거나 이번 주의 별도 사주를 계산한 척하지 마세요.",
+          "weekly에는 입력 week.startDate와 week.endDate를 정확히 복사하세요. body에는 한국 시간 월요일부터 일요일까지의 이번 주를 한 문단으로 설명하고, action에는 이번 주에 해볼 작은 행동 하나를 따로 쓰세요. 특정 요일의 사건·합격·수익·건강 결과를 예언하거나 이번 주의 별도 사주를 계산한 척하지 마세요.",
+          `weekly.days에는 다음 날짜를 월요일부터 일요일 순서로 정확히 일곱 개 넣으세요: ${weekDates.join(", ")}. 각 항목은 date와 body만 쓰고, body는 그날 돌아볼 점을 쉬운 한국어 1~2문장으로 적으세요. 날짜마다 다른 작은 관점을 고르되 미래 사건을 예언하지 마세요. today.date와 같은 항목의 body는 today.body를 그대로 복사하세요.`,
           "오행 숫자는 여덟 글자의 개수일 뿐, 성격 강약·운명 판단 근거가 아닙니다.",
           "자연 비유를 쓸 때 목=나무, 화=불, 토=흙·산, 금=쇠, 수=물의 대응을 반드시 지키세요. 특히 무토는 흙·산이지 나무가 아닙니다. 일간의 오행과 다른 자연물을 그 일간 자체에 비유하지 마세요.",
           "전문 용어는 천간, 지지, 일간, 월주, 오행, 음양, 십성, 비견, 겁재, 식신, 상관, 편재, 정재, 편관, 정관, 편인, 정인, 갑목, 을목, 병화, 정화, 무토, 기토, 경금, 신금, 임수, 계수 중 설명에 꼭 필요한 것만 사용하고, 그 외에는 쉬운 말로 바꾸세요.",

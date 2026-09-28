@@ -781,6 +781,142 @@ button:disabled {
   padding: 8px 14px;
 }
 
+.fortune-cues {
+  width: 100%;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+
+.fortune-cues > strong,
+.fortune-action strong {
+  color: var(--primary);
+  font-size: 13px;
+}
+
+.fortune-cues > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.fortune-cue {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fffaf0;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.fortune-cue i,
+.fortune-number {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  border: 1px solid rgb(55 43 32 / 25%);
+  border-radius: 50%;
+}
+
+.fortune-number {
+  background: var(--surface-soft);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.fortune-cues small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.fortune-action {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.fortune-action p {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.week-calendar {
+  width: 100%;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.week-overview-button {
+  min-height: 34px;
+  margin-bottom: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--primary);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.week-overview-button[aria-pressed="true"] { border-color: var(--primary); background: var(--soft); }
+
+.week-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.week-day-button,
+.week-day-static {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 67px;
+  align-content: start;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 1px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+}
+
+.week-day-button { border-color: var(--border); cursor: pointer; }
+.week-day-button:hover { color: var(--primary); background: var(--soft); }
+.week-day-button.is-today,
+.week-day-static.is-today { border-color: var(--border); background: var(--soft); color: var(--primary); }
+.week-day-button[aria-pressed="true"] { border-color: var(--primary); color: var(--surface); background: var(--primary); }
+.week-day-button[aria-pressed="true"] .week-day-date,
+.week-day-button[aria-pressed="true"] .week-day-term { color: var(--surface); background: transparent; }
+
+.week-day-date { color: var(--text); font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.week-day-term { max-width: 100%; padding: 1px 2px; border-radius: 4px; color: var(--primary); background: var(--soft); font-size: 10px; font-weight: 800; white-space: nowrap; }
+.week-calendar .week-calendar-note,
+.daily-fortune-upgrade { margin-top: 8px; color: var(--muted); font-size: 12px; }
+.weekly-reading-content { width: 100%; margin-top: 14px; }
+.weekly-reading-content > p { color: var(--text); font-size: 16px; line-height: 1.7; }
+
 @media (max-width: 680px) {
   body {
     padding: 16px 14px 48px;
