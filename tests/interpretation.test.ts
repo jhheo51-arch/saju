@@ -4,6 +4,7 @@ import { calculate, type SajuInput } from "../lib/saju/chart";
 import {
   assertChartGrounding,
   buildInterpretationPayload,
+  dailyFortuneDisplayDate,
   koreaDate,
   koreaWeekRange,
   parseInterpretationResponse,
@@ -37,6 +38,12 @@ test("이번 주는 한국 날짜 기준 월요일부터 일요일까지 계산�
   assert.equal(koreaDate(new Date("2026-09-20T15:30:00Z")), "2026-09-21");
   assert.deepEqual(koreaWeekRange(koreaDate(new Date("2026-09-20T15:30:00Z"))),
     { startDate: "2026-09-21", endDate: "2026-09-27" });
+});
+
+test("오늘의 운세 표시는 한국 오전 9시 전에는 전날, 9시부터 당일을 사용한다", () => {
+  // 2026-09-28 08:59 KST / 09:00 KST
+  assert.equal(dailyFortuneDisplayDate(new Date("2026-09-27T23:59:00Z")), "2026-09-27");
+  assert.equal(dailyFortuneDisplayDate(new Date("2026-09-28T00:00:00Z")), "2026-09-28");
 });
 
 test("존재하지 않는 한국 날짜는 이번 주 범위로 계산하지 않는다", () => {

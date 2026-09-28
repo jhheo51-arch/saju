@@ -42,6 +42,27 @@ export function koreaDate(now = new Date()): string {
   }).format(now);
 }
 
+function koreaHour(now: Date): number {
+  const hour = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Seoul",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).format(now);
+  return Number(hour);
+}
+
+/**
+ * 오전 9시의 사전 생성 작업 전에는 아직 만들어지지 않은 당일 행 대신
+ * 전날에 준비된 운세를 이어 보여준다. Cron에는 생성 대상 날짜를 직접 넘긴다.
+ */
+export function dailyFortuneDisplayDate(now = new Date()): string {
+  const today = koreaDate(now);
+  if (koreaHour(now) >= 9) return today;
+  const previousDay = new Date(`${today}T00:00:00Z`);
+  previousDay.setUTCDate(previousDay.getUTCDate() - 1);
+  return previousDay.toISOString().slice(0, 10);
+}
+
 export function koreaWeekRange(date: string): { startDate: string; endDate: string } {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new InvalidInterpretationError("날짜 형식이 올바르지 않습니다.");
   const day = new Date(`${date}T00:00:00Z`);

@@ -47,12 +47,12 @@ test("열린 오늘 운세는 무대와 문 그림 모두에 열린 상태를 �
   assert.match(css, /\.palace-door-stage\.is-open \.palace-door-frame i:last-child,\s*\.palace-door-art\.is-open \.palace-door-frame i:last-child\s*\{[^}]*transform:/);
 });
 
-test("궁궐 문 양쪽은 지정한 단청 원화를 서로 반대 위치로 사용한다", () => {
+test("궁궐 문 양쪽은 지정한 먹빛 비취 원화를 서로 반대 위치로 사용한다", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  const dancheong = new URL("../public/palace-door-dancheong-v01.png", import.meta.url);
+  const inkJade = new URL("../public/palace-door-ink-jade-v01.png", import.meta.url);
 
-  assert.ok(existsSync(dancheong), "지정한 단청 원화 파일이 public에 있어야 합니다.");
-  assert.ok(statSync(dancheong).size > 0, "지정한 단청 원화 파일이 비어 있으면 안 됩니다.");
-  assert.match(css, /\.palace-door-frame i\s*\{[^}]*background-image:\s*url\("\/palace-door-dancheong-v01\.png"\)[^}]*background-position:\s*left center;/);
+  assert.ok(existsSync(inkJade), "지정한 먹빛 비취 원화 파일이 public에 있어야 합니다.");
+  assert.ok(statSync(inkJade).size > 0, "지정한 먹빛 비취 원화 파일이 비어 있으면 안 됩니다.");
+  assert.match(css, /\.palace-door-frame i\s*\{[^}]*background-image:\s*url\("\/palace-door-ink-jade-v01\.png"\)[^}]*background-position:\s*left center;/);
   assert.match(css, /\.palace-door-frame i:last-child\s*\{[^}]*background-position:\s*right center;/);
 });

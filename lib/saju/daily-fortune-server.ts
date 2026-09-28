@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 import { calculate, type SajuChart, type SajuInput } from "./chart";
 import { createDailyFortune, isDailyFortune, type DailyFortune } from "./daily-fortune";
-import { koreaDate } from "./interpretation";
+import { dailyFortuneDisplayDate, koreaDate } from "./interpretation";
 
 type ProfileRow = { user_id: string; chart: unknown; updated_at: string };
 type FortuneRow = { content: unknown; source_profile_updated_at: string };
@@ -75,7 +75,7 @@ async function loadDailyFortuneProfile(admin: SupabaseClient, userId: string): P
   return migratedProfile;
 }
 
-export async function ensureDailyFortune(userId: string, date = koreaDate()): Promise<DailyFortune | null> {
+export async function ensureDailyFortune(userId: string, date = dailyFortuneDisplayDate()): Promise<DailyFortune | null> {
   const admin = dailyFortuneAdmin();
   const profile = await loadDailyFortuneProfile(admin, userId);
   if (!profile) return null;

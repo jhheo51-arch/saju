@@ -20,8 +20,7 @@ test("Vercel은 한국 오전 9시(UTC 00:00)에 오늘 운세 예약 경로를 
   assert.deepEqual(config.crons, [{ path: "/api/cron/daily-fortune", schedule: "0 0 * * *" }]);
   assert.match(cronRoute, /process\.env\.CRON_SECRET/);
   assert.match(cronRoute, /authorization[\s\S]*Bearer \$\{secret\}/);
-  assert.match(cronRoute, /koreaDate\(\)/);
-  assert.match(cronRoute, /prepareDailyFortunes\(date\)/);
+  assert.match(cronRoute, /const date = koreaDate\(\);\s*const summary = await prepareDailyFortunes\(date\);/);
   assert.match(cronRoute, /status: 401/);
   assert.match(cronRoute, /Cache-Control.*no-store/);
 });
@@ -60,10 +59,14 @@ test("사용자 API는 인증된 본인 운세만 no-store로 읽고, 기본 정
   assert.match(profileRoute, /ensureDailyFortune\(user\.id\)/);
 });
 
-test("첫 방문 궁궐 문은 접근 가능하고, 한 번 연 뒤에는 기존 오늘·이번 주 영역을 계속 쓴다", () => {
-  assert.match(form, /daily-palace-door:\$\{user\.id\}:\$\{fortune\.date\}/);
-  assert.match(form, /window\.localStorage\.getItem/);
-  assert.match(form, /window\.localStorage\.setItem/);
+test("운세를 불러오거나 기본 사주를 저장한 뒤에는 매번 닫힌 궁궐 문부터 시작한다", () => {
+  const load = form.slice(form.indexOf("async function loadDailyFortune"), form.indexOf("async function saveDailyProfile"));
+  const save = form.slice(form.indexOf("async function saveDailyProfile"), form.indexOf("function openDailyDoor"));
+
+  assert.doesNotMatch(form, /daily-palace-door/, "오늘 운세 문 열림 기록을 브라우저에 남기지 않습니다.");
+  assert.doesNotMatch(`${load}\n${save}`, /localStorage/, "운세 문 상태는 브라우저 저장소에서 복원하지 않습니다.");
+  assert.match(load, /setDailyFortune\(fortune\);\s*setDailyDoorVisible\(true\);\s*setDailyDoorOpened\(false\);/);
+  assert.match(save, /setDailyFortune\(fortune\);\s*setDailyDoorVisible\(true\);\s*setDailyDoorOpened\(false\);/);
   assert.match(form, /aria-expanded=\{dailyDoorOpened\}/);
   assert.match(form, /aria-controls="daily-palace-fortune"/);
   assert.match(form, /type="button"/);

@@ -1946,17 +1946,16 @@ button:disabled {
 .palace-door-button { position: relative; z-index: 2; display: block; width: 100%; height: 100%; min-height: 44px; margin: 0; padding: 0; border: 0 !important; color: var(--palace-black) !important; background: transparent !important; font-family: "Noto Serif KR", "Nanum Myeongjo", Batang, serif; cursor: pointer; }
 .palace-door-button:hover .palace-door-art, .palace-door-button:focus-visible .palace-door-art { filter: brightness(1.04); }
 .palace-door-button:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 12px; }
-.palace-door-art { position: absolute; inset: 0; display: block; overflow: hidden; border: 3px solid #d3b25d; border-radius: 10px; background: #103a36; box-shadow: 0 12px 18px rgb(44 34 20 / 24%), inset 0 0 0 2px rgb(255 239 173 / 55%); transition: filter 180ms ease-out; }
-.palace-door-eaves, .palace-door-sign { display: none; }
+.palace-door-art { position: absolute; inset: 0; display: block; overflow: hidden; border: 3px solid #9f8751; border-radius: 10px; background: #17252e; box-shadow: 0 13px 22px rgb(25 31 35 / 28%), inset 0 0 0 2px rgb(244 224 173 / 48%); transition: filter 180ms ease-out; }
 .palace-door-frame { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; background: radial-gradient(ellipse at 50% 95%, #d7c270 0 3%, #37675c 23%, #103a36 72%); perspective: 1000px; }
-.palace-door-frame::before { position: absolute; z-index: 2; top: 33%; bottom: 14%; left: 50%; width: 3px; transform: translateX(-50%); background: rgb(240 212 125 / 74%); content: ""; }
-.palace-door-frame i { position: relative; z-index: 3; display: block; overflow: hidden; border: 0; background-image: url("/palace-door-dancheong-v01.png"); background-repeat: no-repeat; background-size: 200% 100%; background-position: left center; box-shadow: none; transform-origin: left center; transition: transform 520ms cubic-bezier(.2, .78, .2, 1), opacity 240ms ease-out; }
+.palace-door-frame::before { position: absolute; z-index: 2; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); background: rgb(213 183 105 / 70%); content: ""; }
+.palace-door-frame i { position: relative; z-index: 3; display: block; overflow: hidden; border: 0; background-image: url("/palace-door-ink-jade-v01.png"); background-repeat: no-repeat; background-size: 200% 100%; background-position: left center; box-shadow: none; transform-origin: left center; transition: transform 520ms cubic-bezier(.2, .78, .2, 1), opacity 240ms ease-out; }
 .palace-door-frame i:last-child { transform-origin: right center; }
 .palace-door-frame i:last-child { background-position: right center; }
 .palace-door-frame i b { display: none; }
-.palace-door-stage.is-open .palace-door-frame i:first-child, .palace-door-art.is-open .palace-door-frame i:first-child { transform: translateX(-82%) rotateY(25deg); opacity: .92; }
-.palace-door-stage.is-open .palace-door-frame i:last-child, .palace-door-art.is-open .palace-door-frame i:last-child { transform: translateX(82%) rotateY(-25deg); opacity: .92; }
-.palace-door-prompt { position: absolute; z-index: 6; right: 12px; bottom: 12px; left: 12px; padding: 7px 10px; border-radius: 7px; background: rgb(20 57 48 / 84%); color: #fff0b8; font-size: 15px; font-weight: 800; }
+.palace-door-stage.is-open .palace-door-frame i:first-child, .palace-door-art.is-open .palace-door-frame i:first-child { transform: translateX(-86%) rotateY(25deg); opacity: .92; }
+.palace-door-stage.is-open .palace-door-frame i:last-child, .palace-door-art.is-open .palace-door-frame i:last-child { transform: translateX(86%) rotateY(-25deg); opacity: .92; }
+.palace-door-prompt { position: absolute; z-index: 6; right: 12px; bottom: 12px; left: 12px; padding: 7px 10px; border: 1px solid rgb(231 201 124 / 62%); border-radius: 7px; background: rgb(23 37 46 / 88%); color: #fff1bc; font-size: 15px; font-weight: 800; }
 .palace-fortune-content { position: absolute; z-index: 1; top: 35%; right: 16%; bottom: 17%; left: 16%; display: grid; align-content: center; gap: 8px; padding: 13px 14px; border: 2px solid #d8b96b; background: linear-gradient(150deg, #fff9e8, #e8d198); box-shadow: inset 0 0 0 4px rgb(255 246 213 / 74%); text-align: center; animation: palace-fortune-reveal 240ms ease-out both; }
 .palace-fortune-content p { margin: 0; }
 .fortune-color { display: inline-flex; align-items: center; justify-self: center; gap: 7px; color: #5d4b31; font-size: 13px; font-weight: 700; }
