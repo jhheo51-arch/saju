@@ -239,10 +239,9 @@ export default function SajuForm() {
       }
       if (!response.ok || !data.fortune) throw new ServerMessageError(typeof data.error === "string" ? data.error : "오늘의 운세를 불러오지 못했어요.");
       const fortune = data.fortune as DailyFortune;
-      const seenKey = `daily-palace-door:${user.id}:${fortune.date}`;
       setDailyFortune(fortune);
       setDailyDoorVisible(true);
-      setDailyDoorOpened(window.localStorage.getItem(seenKey) === "opened");
+      setDailyDoorOpened(false);
     } catch (caught) {
       setDailyFortuneError(caught instanceof Error ? caught.message : "오늘의 운세를 불러오지 못했어요.");
     } finally {
@@ -267,8 +266,7 @@ export default function SajuForm() {
       const fortune = data.fortune as DailyFortune;
       setDailyFortune(fortune);
       setDailyDoorVisible(true);
-      setDailyDoorOpened(true);
-      window.localStorage.setItem(`daily-palace-door:${user.id}:${fortune.date}`, "opened");
+      setDailyDoorOpened(false);
     } catch (caught) {
       setDailyFortuneError(caught instanceof Error ? caught.message : "오늘의 운세를 준비하지 못했어요.");
     } finally {
@@ -279,7 +277,6 @@ export default function SajuForm() {
   function openDailyDoor() {
     if (!dailyFortune || !user || dailyDoorOpened) return;
     setDailyDoorOpened(true);
-    window.localStorage.setItem(`daily-palace-door:${user.id}:${dailyFortune.date}`, "opened");
     window.setTimeout(() => dailyFortuneTitleRef.current?.focus(), window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 340);
   }
 
@@ -771,8 +768,6 @@ export default function SajuForm() {
             <div className={`palace-door-stage${dailyDoorOpened ? " is-open" : ""}`}>
               <button type="button" className="palace-door-button" aria-label={dailyDoorOpened ? "열린 궁궐 문 안의 오늘의 운세" : "궁궐 문을 열어 오늘의 운세 보기"} aria-expanded={dailyDoorOpened} aria-controls="daily-palace-fortune" onClick={openDailyDoor}>
                 <span className={`palace-door-art${dailyDoorOpened ? " is-open" : ""}`} aria-hidden="true">
-                  <span className="palace-door-eaves" />
-                  <span className="palace-door-sign">오늘의 기운</span>
                   <span className="palace-door-frame"><i><b /><b /></i><i><b /><b /></i></span>
                 </span>
                 {!dailyDoorOpened && <span className="palace-door-prompt">문을 열어 오늘의 운세 보기</span>}

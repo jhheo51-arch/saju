@@ -117,23 +117,22 @@ test("궁궐 문은 기존 오늘·이번 주 카드 흐름을 대체하거나 �
   assert.doesNotMatch(form, /scrollIntoView|window\.scrollTo/);
 });
 
-test("로그인 사용자가 나의 사주 해석 보기를 누르면 오늘 운세를 준비한 뒤 열린 궁궐 카드에서 바로 본다", () => {
+test("로그인 사용자가 나의 사주 해석 보기를 누르면 오늘 운세를 준비하고 닫힌 궁궐 문을 보여준다", () => {
   const submit = form.slice(form.indexOf("function handleSubmit"), form.indexOf("async function deleteSaved"));
   const saveProfile = form.slice(form.indexOf("async function saveDailyProfile"), form.indexOf("function openDailyDoor"));
 
   assert.match(submit, /void saveDailyProfile\(input\);[\s\S]*void requestReading\(input\);/);
   assert.match(saveProfile, /setDailyFortuneLoading\(true\);/, "저장 응답을 기다리는 동안에도 오늘 운세 준비 상태가 보여야 합니다");
-  assert.match(saveProfile, /setDailyFortune\([^\n]+\);[\s\S]*setDailyDoorVisible\(true\);[\s\S]*setDailyDoorOpened\(true\);/);
+  assert.match(saveProfile, /setDailyFortune\([^\n]+\);[\s\S]*setDailyDoorVisible\(true\);[\s\S]*setDailyDoorOpened\(false\);/);
   assert.match(saveProfile, /finally[\s\S]*setDailyFortuneLoading\(false\);/);
-  assert.match(form, /dailyDoorOpened && <div id="daily-palace-fortune"[\s\S]*dailyFortune\.color\.name[\s\S]*dailyFortune\.number[\s\S]*dailyFortune\.body/);
+  assert.match(form, /!dailyDoorOpened && <span className="palace-door-prompt">문을 열어 오늘의 운세 보기<\/span>/);
 });
 
-test("저장된 오늘 운세를 다시 열 때에도 색상·숫자가 있는 열린 궁궐 카드로 복원한다", () => {
+test("저장된 오늘 운세도 다시 불러올 때에는 닫힌 궁궐 문으로 시작한다", () => {
   const load = form.slice(form.indexOf("async function loadDailyFortune"), form.indexOf("async function saveDailyProfile"));
 
-  assert.match(load, /const seenKey = `daily-palace-door:\$\{user\.id\}:\$\{fortune\.date\}`/);
-  assert.match(load, /setDailyDoorVisible\(true\);[\s\S]*setDailyDoorOpened\(window\.localStorage\.getItem\(seenKey\) === "opened"\);/);
-  assert.match(form, /window\.localStorage\.setItem\(`daily-palace-door:\$\{user\.id\}:\$\{dailyFortune\.date\}`, "opened"\)/);
+  assert.match(load, /setDailyDoorVisible\(true\);\s*setDailyDoorOpened\(false\);/);
+  assert.doesNotMatch(load, /localStorage|seenKey|daily-palace-door/);
 });
 
 test("이번 주 운세는 기존의 월~일 날짜 선택과 한 주 전체 보기 UI를 유지한다", () => {
