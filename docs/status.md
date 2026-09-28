@@ -63,3 +63,4 @@ Spec을 만들면 아래 목록에 파일명을 추가합니다. 구현과 검�
 - [x] `053-local-gemini-and-door-state.md` — 로컬 Gemini 해석 연결과 첨부 단청 궁궐문·열린 상태 복구(자동 검사·빌드 완료, 참가자 화면 확인 전)
 - [x] `054-palace-door-reopen-and-cutover.md` — 새 궁궐문, 매 접근 문 열기와 오전 9시 운세 전환(자동 검사·빌드 완료, 참가자 화면 확인 전)
 - [x] `055-visible-palace-fortune-reveal.md` — 문 안 운세 표시와 넓은 양문(자동 검사·빌드 완료, 참가자 화면 확인 전)
+- [x] `056-remove-question-answer-panel.md` — 실패하는 질문 답변 영역 제거(자동 검사·빌드 완료, 참가자 화면 확인 전)

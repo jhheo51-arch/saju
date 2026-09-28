@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
-import { calculate, InputError, parseQuestion, type Pillar, type SajuChart, type SajuInput } from "../lib/saju/chart";
-import { clearAccountResult, loadAccountResults, saveAccountResult, updateAccountResult, type AccountSavedInterpretation } from "../lib/saju/account-storage";
+import { calculate, InputError, type Pillar, type SajuChart, type SajuInput } from "../lib/saju/chart";
+import { clearAccountResult, loadAccountResults, saveAccountResult, type AccountSavedInterpretation } from "../lib/saju/account-storage";
 import { basicTerms, stemTerms, tenStars } from "../lib/saju/glossary";
 import { isReadingTopic, koreaDate, koreaWeekRange, type Interpretation, type ReadingTopic } from "../lib/saju/interpretation";
 import { getSajuSupabaseClient } from "../lib/saju/supabase-client";
@@ -153,10 +153,6 @@ export default function SajuForm() {
   const [avatarSaveError, setAvatarSaveError] = useState("");
   const [avatarStyle, setAvatarStyle] = useState<SelectedAvatarStyle | null>(null);
   const [selectedWeeklyDate, setSelectedWeeklyDate] = useState<string | null>(null);
-  const [question, setQuestion] = useState("");
-  const [questionLoading, setQuestionLoading] = useState(false);
-  const [questionError, setQuestionError] = useState("");
-  const [saveQuestionAnswer, setSaveQuestionAnswer] = useState(false);
   const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>("exact");
   const [dailyFortune, setDailyFortune] = useState<DailyFortune | null>(null);
   const [dailyFortuneLoading, setDailyFortuneLoading] = useState(false);
@@ -164,7 +160,6 @@ export default function SajuForm() {
   const [dailyDoorVisible, setDailyDoorVisible] = useState(false);
   const [dailyDoorOpened, setDailyDoorOpened] = useState(false);
   const pending = useRef(false);
-  const questionPending = useRef(false);
   const avatarShareRef = useRef<HTMLDivElement | null>(null);
   const dailyFortuneTitleRef = useRef<HTMLHeadingElement | null>(null);
   const accountClient = useRef<SupabaseClient | null>(null);
@@ -347,8 +342,6 @@ export default function SajuForm() {
         setHasStoredResult(false);
         setAccountResults([]);
         setRetryInput(null);
-        setQuestion("");
-        setQuestionError("");
         setNotice("로그아웃했어요. 계정의 해석은 이 화면에서 숨겼어요.");
       }
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
@@ -408,8 +401,6 @@ export default function SajuForm() {
         setResult(null);
         setHasStoredResult(false);
         setAccountResults([]);
-        setQuestion("");
-        setQuestionError("");
         setNotice("로그아웃했어요. 계정의 해석은 이 화면에서 숨겼어요.");
       }
     } catch {
@@ -474,64 +465,6 @@ export default function SajuForm() {
     }
   }
 
-  async function askQuestion(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (questionPending.current || !user || !accountClient.current || !result?.reading) return;
-
-    let checkedQuestion: string;
-    try {
-      checkedQuestion = parseQuestion(question, true);
-    } catch (caught) {
-      setQuestionError(caught instanceof InputError ? caught.message : "궁금한 점을 확인해 주세요.");
-      return;
-    }
-
-    questionPending.current = true;
-    setQuestionLoading(true);
-    setQuestionError("");
-    try {
-      const client = accountClient.current;
-      const { data: sessionData, error: sessionError } = await client.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (sessionError || !token) throw new ServerMessageError("로그인이 만료됐어요. Google로 다시 로그인해 주세요.");
-      const createdAt = result.createdAt || new Date().toISOString();
-      const response = await fetch("/api/question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          question: checkedQuestion,
-          result: { version: 1, createdAt, chart: result.chart, topic: result.topic, reading: result.reading },
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new ServerMessageError(typeof data.error === "string" ? data.error : "질문에 답하지 못했어요. 다시 시도해 주세요.");
-
-      const nextReading = { ...result.reading, questionAnswer: data.questionAnswer };
-      const nextResult = { ...result, reading: nextReading, createdAt };
-      setResult(nextResult);
-      if (saveQuestionAnswer) try {
-        const saved = { version: 1 as const, createdAt, chart: result.chart, topic: result.topic, reading: nextReading };
-        if (result.id) {
-          await updateAccountResult(client, user.id, result.id, saved);
-          setAccountResults((current) => current.map((item) => item.id === result.id ? { ...item, reading: nextReading } : item));
-        } else {
-          const id = await saveAccountResult(client, user.id, saved);
-          setResult({ ...nextResult, id });
-          setAccountResults((current) => [{ ...saved, id }, ...current].slice(0, 10));
-        }
-        setHasStoredResult(true);
-        setNotice("질문 답변을 최근 사주 결과에 함께 저장했어요.");
-      } catch {
-        setNotice("답변은 만들었지만 계정에 저장하지 못했어요. 화면을 닫으면 답변이 사라질 수 있어요.");
-      } else setNotice("질문과 답변은 계정에 저장하지 않았어요.");
-    } catch (caught) {
-      setQuestionError(caught instanceof ServerMessageError ? caught.message : "질문 답변에 연결하지 못했어요. 다시 시도해 주세요.");
-    } finally {
-      questionPending.current = false;
-      setQuestionLoading(false);
-    }
-  }
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending.current) return;
@@ -576,8 +509,6 @@ export default function SajuForm() {
 
     try {
       const chart = calculate(input);
-      setQuestion("");
-      setQuestionError("");
       setResult({ chart, topic: selectedTopic.value, reading: null });
       setSelectedWeeklyDate(null);
       setRetryInput(input);
@@ -604,8 +535,6 @@ export default function SajuForm() {
       const next = remaining[0];
       setResult(next ? { id: next.id, chart: next.chart, topic: next.topic, reading: next.reading, createdAt: next.createdAt } : null);
       setHasStoredResult(Boolean(next));
-      setQuestion("");
-      setQuestionError("");
       setNotice(resultId ? "선택한 해석을 삭제했어요." : "계정의 사주 해석 기록을 모두 삭제했어요.");
     } catch {
       setError("저장된 해석을 삭제하지 못했어요. 잠시 후 다시 시도해주세요.");
@@ -661,8 +590,6 @@ export default function SajuForm() {
               <button type="button" className={active ? "is-active" : ""} aria-pressed={active} onClick={() => {
                 setResult({ id: saved.id, chart: saved.chart, topic: saved.topic, reading: saved.reading, createdAt: saved.createdAt });
                 setHasStoredResult(true);
-                setQuestion("");
-                setQuestionError("");
               }}>
                 <strong>{topic} · {saved.chart.dayMaster.korean}{saved.chart.dayMaster.element}</strong>
                 <span>{new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(saved.createdAt))}</span>
@@ -1075,55 +1002,6 @@ export default function SajuForm() {
             {result.reading?.weekly && result.reading.weekly.startDate !== currentWeek.startDate && <p className="date-note">이번 주 풀이 기간이 지났어요. 새로 해석하면 현재 주의 풀이를 볼 수 있어요.</p>}
           </section>
 
-          {result.reading && <section className="preview question-preview" aria-labelledby="question-section-title" aria-busy={questionLoading}>
-            <div className="preview-header">
-              <span className="section-step">05</span>
-              <div>
-                <p className="eyebrow">내 사주 결과에 이어서 묻기</p>
-                <h2 id="question-section-title">궁금한 점 답변</h2>
-                <p>현재 사주 계산과 선택한 주제를 바탕으로 질문에 답해드려요.</p>
-              </div>
-            </div>
-
-            <form className="question-form" onSubmit={askQuestion}>
-              <div className="field">
-                <label htmlFor="saju-question">무엇이 궁금한가요?</label>
-                <textarea
-                  id="saju-question"
-                  name="question"
-                  value={question}
-                  onChange={(event) => { setQuestion(event.target.value); if (questionError) setQuestionError(""); }}
-                  maxLength={200}
-                  required
-                  placeholder="예: 새로운 일을 시작할 때 무엇을 먼저 살펴보면 좋을까요?"
-                  aria-describedby="saju-question-count"
-                  aria-invalid={Boolean(questionError)}
-                />
-                <div className="question-field-note">
-                  <small id="saju-question-count">{question.length}/200</small>
-                </div>
-              </div>
-              <label className="question-save-choice">
-                <input type="checkbox" checked={saveQuestionAnswer} onChange={(event) => setSaveQuestionAnswer(event.target.checked)} />
-                <span>이 질문의 답변을 현재 계정 결과에 저장하기 <small>질문 원문은 저장하지 않아요.</small></span>
-              </label>
-              {questionError && <p className="question-error" role="alert">{questionError}</p>}
-              <button type="submit" disabled={questionLoading}>{questionLoading ? "답변을 만들고 있어요…" : result.reading.questionAnswer ? "새 질문으로 답변 바꾸기" : "질문 답변 받기"}</button>
-            </form>
-
-            {result.reading.questionAnswer && <article className="question-answer" aria-live="polite">
-              <span>질문에 대한 답</span>
-              {result.reading.questionAnswer.focus && <p className="question-answer-focus"><strong>지금 고민의 핵심</strong>{result.reading.questionAnswer.focus}</p>}
-              {result.reading.questionAnswer.basis && <p className="question-answer-basis"><strong>이 답을 읽은 단서</strong><span className="question-answer-basis-text"><ExplainedText text={result.reading.questionAnswer.basis} id="question-basis" pillars={result.chart.pillars} /></span></p>}
-              <p><ExplainedText text={result.reading.questionAnswer.answer} id="question-answer" pillars={result.chart.pillars} /></p>
-              {result.reading.questionAnswer.criteria && <div className="question-answer-criteria"><strong>선택할 때 확인할 기준</strong><ol>{result.reading.questionAnswer.criteria.map((criterion) => <li key={criterion}>{criterion}</li>)}</ol></div>}
-              {result.reading.questionAnswer.caution && <p className="question-answer-caution"><strong>반대 모습도 확인하세요</strong>{result.reading.questionAnswer.caution}</p>}
-              <div className="fortune-action">
-                <strong>지금 해볼 작은 행동</strong>
-                <p><ExplainedText text={result.reading.questionAnswer.action} id="question-action" pillars={result.chart.pillars} /></p>
-              </div>
-            </article>}
-          </section>}
         </>)}
       </div>
     </>
