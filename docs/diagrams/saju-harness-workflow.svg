@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 436 267" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">사주 서비스 하네스 엔지니어링 워크플로우</title>
+  <desc id="desc">사람의 아이디어가 harness.md 기준과 AGENTS.md 정책을 따라 에이전트와 구현 결과로 이어집니다. evals.json을 npm run harness로 검사해 실패하면 에이전트로 돌아가고 통과하면 완료합니다.</desc>
+  <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#151b47"/></marker></defs>
+  <rect width="436" height="267" fill="#30312f"/><rect x="10" y="9" width="416" height="253" rx="1" fill="#fff"/>
+
+  <g fill="none" stroke="#151b47" stroke-width="2.5" marker-end="url(#arrow)">
+    <path d="M66 119H96"/><path d="M134 119H170"/><path d="M241 119H280"/><path d="M209 195V158"/>
+    <path d="M226 218H283"/><path d="M328 218H366"/><path d="M284 218C276 218 274 213 274 206V197C274 188 266 184 251 184H219"/>
+  </g>
+  <g fill="none" stroke="#151b47" stroke-width="2" stroke-dasharray="2 4">
+    <path d="M137 115V58C137 51 142 48 150 48H160"/><path d="M320 50H335C342 50 345 55 345 63V115"/>
+    <path d="M345 115V151C345 158 339 161 331 161H242" marker-end="url(#arrow)"/>
+  </g>
+
+  <rect x="160" y="18" width="160" height="66" rx="4" fill="#3159d6" stroke="#151b47" stroke-width="2.5"/>
+  <text x="240" y="41" text-anchor="middle" fill="#fff" font-family="Arial,'Malgun Gothic',sans-serif" font-size="17" font-weight="700">AGENTS.md</text>
+  <text x="240" y="59" text-anchor="middle" fill="#fff" font-family="Arial,'Malgun Gothic',sans-serif" font-size="10.5" font-weight="700">수정하면 반드시 harness 실행,</text>
+  <text x="240" y="74" text-anchor="middle" fill="#fff" font-family="Arial,'Malgun Gothic',sans-serif" font-size="10.5" font-weight="700">FAIL 없을 때까지 고친다</text>
+
+  <g stroke="#151b47" stroke-width="1.6" stroke-linejoin="round">
+    <circle cx="37" cy="111" r="8" fill="#d8c7f2"/><path d="M27 133Q28 118 37 118Q46 118 47 133Z" fill="#d8c7f2"/>
+    <rect x="49" y="108" width="16" height="13" rx="1" fill="#f2d19a"/><path d="M47 115H42M58 108V116" fill="none"/>
+  </g>
+  <text x="43" y="149" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9" font-weight="700">사람 아이디어</text>
+
+  <g stroke="#151b47" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M101 98H123L133 108V136H101Z" fill="#fffaf0"/><path d="M123 98V108H133" fill="none"/><path d="M107 113H127M107 119H127M107 125H123" fill="none"/>
+  </g>
+  <text x="117" y="150" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9.5" font-weight="700">harness.md</text>
+  <text x="117" y="162" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="8.5">(기준)</text>
+
+  <rect x="171" y="91" width="70" height="67" fill="#e1dcfb"/>
+  <g stroke="#151b47" stroke-width="1.6" stroke-linecap="round">
+    <path d="M206 105V99"/><circle cx="206" cy="97" r="2.5" fill="#ef7378"/><rect x="190" y="105" width="32" height="23" rx="5" fill="#d8f4f0"/>
+    <circle cx="198" cy="115" r="2" fill="#3159d6"/><circle cx="214" cy="115" r="2" fill="#3159d6"/><path d="M198 121Q206 126 214 121M186 113H190M222 113H226" fill="none"/>
+    <rect x="186" y="132" width="40" height="9" rx="2" fill="#fff"/>
+  </g>
+  <text x="206" y="153" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="11" font-weight="700">에이전트</text>
+
+  <text x="261" y="110" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9.5" font-weight="700">생성</text>
+  <g stroke="#151b47" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M284 98H306L316 108V136H284Z" fill="#fffaf0"/><path d="M306 98V108H316" fill="none"/><path d="M290 113H310M290 119H310M290 125H306" fill="none"/>
+  </g>
+  <text x="300" y="150" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9.5" font-weight="700">구현 결과</text>
+
+  <g stroke="#151b47" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="52" cy="218" r="21" fill="#ffd0ad"/><path d="M31 216Q28 195 42 190Q58 184 72 197L77 211L69 207L66 217L59 209L52 215L44 207L37 216L33 209Z" fill="#7a3b25"/>
+    <circle cx="45" cy="219" r="2" fill="#151b47" stroke="none"/><circle cx="59" cy="219" r="2" fill="#151b47" stroke="none"/>
+    <path d="M46 228Q52 233 59 227" fill="none"/><path d="M31 242Q36 233 52 233Q68 233 74 251V257H30Z" fill="#173a52"/>
+    <path d="M74 244L87 233L94 241L83 252" fill="#ffd0ad"/><path d="M89 233L93 227M93 235L99 232" fill="none"/>
+  </g>
+  <g stroke="#151b47" stroke-width="1.6" stroke-linecap="round">
+    <path d="M121 205V199"/><circle cx="121" cy="196" r="3" fill="#ef7378"/><rect x="102" y="204" width="39" height="29" rx="7" fill="#d7f0f1"/>
+    <circle cx="112" cy="217" r="3" fill="#3159d6"/><circle cx="131" cy="217" r="3" fill="#3159d6"/>
+    <path d="M114 225Q121 230 128 225" fill="none"/><path d="M106 233V246H137V233" fill="#62becb"/>
+    <path d="M102 214L95 220M141 214L148 220M112 246L108 255M130 246L135 255" fill="none"/>
+  </g>
+
+  <g stroke="#151b47" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M194 195H215L225 205V234H194Z" fill="#fffaf0"/><path d="M215 195V205H225" fill="none"/><path d="M200 210H219M200 216H219M200 222H215" fill="none"/>
+  </g>
+  <text x="209" y="248" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="9" font-weight="700">evals.json</text>
+  <text x="253" y="192" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="8.5" font-weight="700" transform="rotate(-12 253 192)">규칙·답변 검증</text>
+  <text x="308" y="198" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="8.5" font-weight="700">npm run harness</text>
+  <text x="261" y="216" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="11" font-weight="700">FAIL</text>
+  <text x="346" y="216" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="11" font-weight="700">PASS</text>
+  <rect x="366" y="200" width="56" height="36" rx="4" fill="#ffc84d"/>
+  <text x="394" y="224" text-anchor="middle" fill="#151b47" font-family="Arial,'Malgun Gothic',sans-serif" font-size="16" font-weight="700">완료</text>
+</svg>

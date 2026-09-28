@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { calculate, type SajuInput } from "../lib/saju/chart";
 import {
+  assertChartGrounding,
   buildInterpretationPayload,
   koreaDate,
   koreaWeekRange,
@@ -84,11 +85,80 @@ const validReading = {
   today: { date: seoulDate, headline: "오늘의 한 걸음", body: "마음을 편하게 표현해 보세요." },
 } as const;
 
+const structuredDetails = {
+  basis: "신금 일간과 무자(토·수) 월주를 함께 참고했어요.",
+  meaning: "쇠의 단단함과 겨울 물의 차분함을 함께 떠올릴 수 있어요.",
+  scene: "대화하기 전에 생각을 짧게 정리하는 모습을 떠올릴 수 있어요.",
+  balance: "두 단서만으로 실제 성격을 확정할 수는 없어요.",
+  action: "오늘 전하고 싶은 말을 한 문장으로 적어보세요.",
+} as const;
+
+const structuredReading = {
+  ...validReading,
+  personality: { ...validReading.personality, ...structuredDetails },
+  topic: { ...validReading.topic, ...structuredDetails },
+} as const;
+
 test("세 영역이 모두 있는 올바른 응답만 받아들인다", () => {
   assert.deepEqual(
     parseInterpretationResponse(validReading, "relationship", seoulDate),
     validReading,
   );
+});
+
+test("새 Gemini 응답은 성향과 주제에 다섯 구조화 항목을 모두 요구한다", () => {
+  const parsed = parseInterpretationResponse(structuredReading, "relationship", seoulDate, "", false, true);
+  assert.deepEqual(parsed.personality.details, structuredDetails);
+  assert.deepEqual(parsed.topic.details, structuredDetails);
+
+  for (const section of ["personality", "topic"] as const) {
+    for (const key of ["basis", "meaning", "scene", "balance", "action"] as const) {
+      const incomplete = {
+        ...structuredReading,
+        [section]: Object.fromEntries(Object.entries(structuredReading[section]).filter(([name]) => name !== key)),
+      };
+      assert.throws(
+        () => parseInterpretationResponse(incomplete, "relationship", seoulDate, "", false, true),
+        `${section}.${key} 누락은 거절`,
+      );
+    }
+  }
+});
+
+test("구조화 풀이의 근거는 실제 일간·월주와 성향의 추가 기둥을 포함해야 한다", () => {
+  const chart = calculate(input);
+  const grounded = parseInterpretationResponse(structuredReading, "relationship", seoulDate, "", false, true);
+  assert.doesNotThrow(() => assertChartGrounding(grounded, chart));
+
+  const cases = [
+    {
+      label: "성향에 실제 일간 없음",
+      reading: { ...grounded, personality: { ...grounded.personality, details: { ...grounded.personality.details!, basis: "무자(토·수) 월주를 참고했어요." } } },
+    },
+    {
+      label: "성향에 다른 실제 기둥 없음",
+      reading: { ...grounded, personality: { ...grounded.personality, details: { ...grounded.personality.details!, basis: "신금 일간을 참고했어요." } } },
+    },
+    {
+      label: "주제에 실제 일간 없음",
+      reading: { ...grounded, topic: { ...grounded.topic, details: { ...grounded.topic.details!, basis: "무자(토·수) 월주를 참고했어요." } } },
+    },
+    {
+      label: "주제에 실제 월주 없음",
+      reading: { ...grounded, topic: { ...grounded.topic, details: { ...grounded.topic.details!, basis: "신금 일간을 참고했어요." } } },
+    },
+    {
+      label: "성향의 다른 실제 기둥에서 아랫글자 오행 없음",
+      reading: { ...grounded, personality: { ...grounded.personality, details: { ...grounded.personality.details!, basis: "신금 일간과 무자(토) 월주를 참고했어요." } } },
+    },
+    {
+      label: "주제의 월주에서 아랫글자 오행 없음",
+      reading: { ...grounded, topic: { ...grounded.topic, details: { ...grounded.topic.details!, basis: "신금 일간과 무자(토) 월주를 참고했어요." } } },
+    },
+  ];
+  for (const item of cases) {
+    assert.throws(() => assertChartGrounding(item.reading, chart), item.label);
+  }
 });
 
 test("새 결과에는 올바른 이번 주 풀이가 반드시 있어야 한다", () => {
@@ -265,6 +335,65 @@ test("최근 결과 한 건만 저장·다시 읽기·삭제할 수 있다", () 
   assert.equal(storage.length, 1);
   clearLatestResult(storage);
   assert.equal(loadLatestResult(storage), null);
+});
+
+test("다섯 세부 항목이 없던 예전 저장 결과도 기존 한 문단으로 계속 복원한다", () => {
+  const storage = new MemoryStorage();
+  const legacy: SavedInterpretation = {
+    version: 1,
+    createdAt: "2026-09-23T01:02:03.000Z",
+    chart: calculate(input),
+    topic: "relationship",
+    reading: validReading,
+  };
+  storage.setItem("saju.latest-interpretation.v1", JSON.stringify(legacy));
+  const restored = loadLatestResult(storage);
+  assert.deepEqual(restored, legacy);
+  assert.equal(restored?.reading.personality.details, undefined);
+  assert.equal(restored?.reading.topic.details, undefined);
+});
+
+test("새 구조 결과를 저장하고 다시 열어도 다섯 세부 항목을 그대로 복원한다", () => {
+  const storage = new MemoryStorage();
+  const reading = parseInterpretationResponse(structuredReading, "relationship", seoulDate, "", false, true);
+  const result: SavedInterpretation = {
+    version: 1,
+    createdAt: "2026-09-23T01:02:03.000Z",
+    chart: calculate(input),
+    topic: "relationship",
+    reading,
+  };
+
+  saveLatestResult(storage, result);
+  const restored = loadLatestResult(storage);
+  assert.deepEqual(restored, result);
+  assert.deepEqual(restored?.reading.personality.details, structuredDetails);
+  assert.deepEqual(restored?.reading.topic.details, structuredDetails);
+  assert.deepEqual(Object.keys(restored!.reading.personality.details!), ["basis", "meaning", "scene", "balance", "action"]);
+});
+
+test("저장된 nested details가 일부 빠지거나 잘못된 형식이면 복원하지 않는다", () => {
+  const storage = new MemoryStorage();
+  const reading = parseInterpretationResponse(structuredReading, "relationship", seoulDate, "", false, true);
+  const result: SavedInterpretation = {
+    version: 1,
+    createdAt: "2026-09-23T01:02:03.000Z",
+    chart: calculate(input),
+    topic: "relationship",
+    reading,
+  };
+  const withoutAction = Object.fromEntries(Object.entries(structuredDetails).filter(([key]) => key !== "action"));
+  const invalidReadings = [
+    { ...reading, personality: { ...reading.personality, details: withoutAction } },
+    { ...reading, topic: { ...reading.topic, details: withoutAction } },
+    { ...reading, personality: { ...reading.personality, details: "잘못된 형식" } },
+    { ...reading, topic: { ...reading.topic, details: { ...structuredDetails, basis: 123 } } },
+  ];
+
+  for (const invalidReading of invalidReadings) {
+    storage.setItem("saju.latest-interpretation.v1", JSON.stringify({ ...result, reading: invalidReading }));
+    assert.equal(loadLatestResult(storage), null);
+  }
 });
 
 test("손상되었거나 구버전인 저장 자료를 결과로 보여주지 않는다", () => {

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 470" role="img" aria-labelledby="data-compare-title data-compare-desc">
+    <title id="data-compare-title">Data, Figma, GitHub diagram-maker 비교</title>
+    <desc id="data-compare-desc">레퍼런스 유사도, 편집성, 정확한 배치 제어, 유지보수성, 접근성의 다섯 기준으로 세 시각화 방법을 비교합니다.</desc>
+    <g class="axis"><line x1="220" y1="50" x2="220" y2="420"/><line x1="360" y1="50" x2="360" y2="420"/><line x1="500" y1="50" x2="500" y2="420"/><line x1="640" y1="50" x2="640" y2="420"/><line x1="780" y1="50" x2="780" y2="420"/><line x1="900" y1="50" x2="900" y2="420"/></g>
+    <g class="small" text-anchor="middle"><text x="220" y="34">0</text><text x="360" y="34">20</text><text x="500" y="34">40</text><text x="640" y="34">60</text><text x="780" y="34">80</text><text x="900" y="34">100</text></g>
+    <g class="label"><text x="8" y="78">레퍼런스 유사도</text><text x="8" y="158">편집성</text><text x="8" y="238">정확한 배치 제어</text><text x="8" y="318">유지보수성</text><text x="8" y="398">접근성</text></g>
+    <g>
+      <rect class="data" x="220" y="58" width="646" height="14"/><rect class="figma" x="220" y="75" width="408" height="14"/><rect class="github" x="220" y="92" width="510" height="14"/>
+      <rect class="data" x="220" y="138" width="408" height="14"/><rect class="figma" x="220" y="155" width="680" height="14"/><rect class="github" x="220" y="172" width="476" height="14"/>
+      <rect class="data" x="220" y="218" width="680" height="14"/><rect class="figma" x="220" y="235" width="374" height="14"/><rect class="github" x="220" y="252" width="612" height="14"/>
+      <rect class="data" x="220" y="298" width="578" height="14"/><rect class="figma" x="220" y="315" width="510" height="14"/><rect class="github" x="220" y="332" width="612" height="14"/>
+      <rect class="data" x="220" y="378" width="646" height="14"/><rect class="figma" x="220" y="395" width="578" height="14"/><rect class="github" x="220" y="412" width="612" height="14"/>
+    </g>
+    <g class="small"><rect class="data" x="220" y="445" width="12" height="12"/><text x="239" y="455">Data measured SVG</text><rect class="figma" x="402" y="445" width="12" height="12"/><text x="421" y="455">Figma FigJam</text><rect class="github" x="548" y="445" width="12" height="12"/><text x="567" y="455">GitHub diagram-maker</text></g>
+  </svg>

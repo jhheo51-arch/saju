@@ -60,7 +60,7 @@ test("궁궐 문은 기존 오늘·이번 주 카드 흐름을 대체하거나 �
   assert.match(form, /className="preview-cards today-cards"/);
   assert.match(form, /오늘과 이번 주 운세/);
   assert.match(form, /오늘의 운세 · \{today\}/);
-  assert.match(form, /이번 주 운세 · \{result\.reading\?\.weekly/);
+  assert.match(form, /이번 주 운세 ·[\s\S]*result\.reading\?\.weekly/);
   assert.match(form, /오늘의 운세 보기/);
   assert.doesNotMatch(form, /scrollIntoView|window\.scrollTo/);
 });
@@ -79,8 +79,8 @@ test("로그인 사용자가 나의 사주 해석 보기를 누르면 오늘 운
 test("저장된 오늘 운세를 다시 열 때에도 색상·숫자가 있는 열린 궁궐 카드로 복원한다", () => {
   const load = form.slice(form.indexOf("async function loadDailyFortune"), form.indexOf("async function saveDailyProfile"));
 
-  assert.match(load, /window\.localStorage\.getItem\(seenKey\) === "opened"/);
-  assert.match(load, /setDailyDoorVisible\(true\);[\s\S]*setDailyDoorOpened\(seen\);/);
+  assert.match(load, /const seenKey = `daily-palace-door:\$\{user\.id\}:\$\{fortune\.date\}`/);
+  assert.match(load, /setDailyDoorVisible\(true\);[\s\S]*setDailyDoorOpened\(window\.localStorage\.getItem\(seenKey\) === "opened"\);/);
   assert.match(form, /window\.localStorage\.setItem\(`daily-palace-door:\$\{user\.id\}:\$\{dailyFortune\.date\}`, "opened"\)/);
 });
 
@@ -99,8 +99,8 @@ test("이번 주 운세는 한 주 전체 설명과 행동 제안, 선택한 날
   assert.match(form, /id="weekly-reading-content"/);
   assert.match(form, /selectedDailyFortune[\s\S]*selectedWeekday\}요일 운세/);
   assert.match(form, /result\.reading\?\.weekly\?\.action[\s\S]*이번 주의 한 걸음[\s\S]*result\.reading\.weekly\.action/);
-  assert.match(interpretation, /type WeeklyDayFortune = \{ date: string; body: string \}/);
-  assert.match(interpretation, /weekly\?: ReadingSection & \{ startDate: string; endDate: string; action\?: string; days\?: WeeklyDayFortune\[\] \}/);
+  assert.match(interpretation, /export type DailyFortune = \{ date: string; body: string \}/);
+  assert.match(interpretation, /weekly\?: ReadingSection & \{ startDate: string; endDate: string; action\?: string; days\?: DailyFortune\[\] \}/);
   assert.match(interpretation, /value\.weekly\.action !== undefined/);
   assert.match(interpretation, /value\.weekly\.days !== undefined/);
   assert.match(interpretation, /날짜별 풀이가 일곱 개가 아닙니다/);

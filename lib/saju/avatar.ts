@@ -1,5 +1,7 @@
 import type { SajuChart } from "./chart";
 
+export type AvatarStyle = "original" | "male" | "female";
+
 export type AvatarProfile = {
   element: keyof SajuChart["elements"];
   name: string;
@@ -28,6 +30,23 @@ const palaceRoles: Record<AvatarProfile["element"], readonly string[]> = {
   토: ["궁궐의 어른 대비", "궁녀 조직을 이끄는 상궁", "침전 주변을 지키는 별군직", "왕실을 돌보는 어의", "궁궐 곳간을 돌보는 내시"],
   금: ["정사를 이끄는 정승·판서", "임금 곁을 지키는 겸사복·내금위", "회의를 기록하는 사관", "바느질을 맡은 침방 나인", "왕실 여성을 돌보는 의녀"],
   수: ["궁궐의 후궁", "왕명 출납을 맡은 승지", "왕의 하루를 적는 사관", "왕실 여성을 돌보는 의녀", "궁궐 안팎을 잇는 내시"],
+};
+
+const styledAvatarImages: Record<"male" | "female", Record<AvatarProfile["element"], string>> = {
+  male: {
+    목: "/avatars/wood-palace-male-v01.png",
+    화: "/avatars/fire-palace-v03.png",
+    토: "/avatars/earth-palace-male-v01.png",
+    금: "/avatars/metal-palace-male-v01.png",
+    수: "/avatars/water-palace-male-v01.png",
+  },
+  female: {
+    목: "/avatars/wood-palace-v03.png",
+    화: "/avatars/fire-palace-female-v01.png",
+    토: "/avatars/earth-palace-v03.png",
+    금: "/avatars/metal-palace-v03.png",
+    수: "/avatars/water-palace-v03.png",
+  },
 };
 
 const dutyImages: Record<AvatarProfile["element"], string> = {
@@ -91,22 +110,29 @@ const avatars: Record<AvatarProfile["element"], AvatarProfile> = {
   },
 };
 
-export function avatarForChart(chart: SajuChart): AvatarProfile | null {
+export function avatarForChart(chart: SajuChart, style: AvatarStyle = "original"): AvatarProfile | null {
   const element = chart?.dayMaster?.element;
-  return Object.hasOwn(avatars, element) ? avatars[element as AvatarProfile["element"]] : null;
+  if (!Object.hasOwn(avatars, element)) return null;
+  const avatar = avatars[element as AvatarProfile["element"]];
+  return style === "original" ? avatar : { ...avatar, image: styledAvatarImages[style][avatar.element] };
 }
 
 export function palaceStoryForChart(chart: SajuChart): PalaceStory | null {
   const avatar = avatarForChart(chart);
   if (!avatar || chart.pillars.length !== 4) return null;
-  const roles = palaceRoles[avatar.element];
-  const seed = chart.pillars.reduce((total, pillar) =>
-    total + (pillar.stem.codePointAt(0) ?? 0) + (pillar.branch.codePointAt(0) ?? 0), 0);
-  const role = roles[seed % roles.length];
+  const elements = ["목", "화", "토", "금", "수"] as const;
+  const monthElement = chart.pillars[1].branchElement;
+  const byMostVisible = [...elements].sort((a, b) =>
+    chart.elements[b] - chart.elements[a] || Number(b === monthElement) - Number(a === monthElement));
+  const byLeastVisible = [...elements].sort((a, b) =>
+    chart.elements[a] - chart.elements[b] || Number(a === avatar.element) - Number(b === avatar.element));
+  const strongest = byMostVisible[0];
+  const leastVisible = byLeastVisible[0];
+  const role = palaceRoles[avatar.element][elements.indexOf(strongest)];
   const month = chart.pillars[1]?.korean;
   return {
     role,
-    duty: `${chart.dayMaster.korean}${avatar.element}의 상징과 월주 ${month}의 분위기를 살려, ${dutyImages[avatar.element]} 궁궐의 하루를 돕는 역할이에요.`,
-    teamwork: `${avatar.relations.balancesMe.element} 기운을 지닌 궁궐 동료와 함께하면, ${avatar.relations.balancesMe.description}`,
+    duty: `일간 ${chart.dayMaster.korean}${avatar.element}에, 여덟 글자 중 ${strongest}가 ${chart.elements[strongest]}개로 가장 눈에 띄어요. 월주 ${month}의 분위기도 더해 ${dutyImages[strongest]} 궁궐의 하루를 도와요.`,
+    teamwork: `${leastVisible} 기운은 여덟 글자 중 ${chart.elements[leastVisible]}개 보여요. 이야기 속에서는 ${leastVisible} 기운의 동료와 서로 다른 장점을 나눠요. 실제로 특정 사람을 만나야 한다는 뜻은 아니에요.`,
   };
 }
