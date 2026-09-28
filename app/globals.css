@@ -1942,7 +1942,7 @@ button:disabled {
 }
 
 .palace-fortune > .card-index { margin: 0 0 10px; color: var(--primary); font-size: 13px; font-weight: 800; }
-.palace-door-stage { position: relative; width: min(100%, 420px); aspect-ratio: 1 / 1; margin: 0 auto; }
+.palace-door-stage { position: relative; width: min(100%, 560px); aspect-ratio: 5 / 4; margin: 0 auto; }
 .palace-door-button { position: relative; z-index: 2; display: block; width: 100%; height: 100%; min-height: 44px; margin: 0; padding: 0; border: 0 !important; color: var(--palace-black) !important; background: transparent !important; font-family: "Noto Serif KR", "Nanum Myeongjo", Batang, serif; cursor: pointer; }
 .palace-door-button:hover .palace-door-art, .palace-door-button:focus-visible .palace-door-art { filter: brightness(1.04); }
 .palace-door-button:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 12px; }
@@ -1955,6 +1955,9 @@ button:disabled {
 .palace-door-frame i b { display: none; }
 .palace-door-stage.is-open .palace-door-frame i:first-child, .palace-door-art.is-open .palace-door-frame i:first-child { transform: translateX(-86%) rotateY(25deg); opacity: .92; }
 .palace-door-stage.is-open .palace-door-frame i:last-child, .palace-door-art.is-open .palace-door-frame i:last-child { transform: translateX(86%) rotateY(-25deg); opacity: .92; }
+.palace-door-stage.is-open .palace-door-art, .palace-door-art.is-open { background: transparent; }
+.palace-door-stage.is-open .palace-door-frame, .palace-door-art.is-open .palace-door-frame { background: transparent; }
+.palace-door-stage.is-open .palace-door-frame::before, .palace-door-art.is-open .palace-door-frame::before { opacity: 0; }
 .palace-door-prompt { position: absolute; z-index: 6; right: 12px; bottom: 12px; left: 12px; padding: 7px 10px; border: 1px solid rgb(231 201 124 / 62%); border-radius: 7px; background: rgb(23 37 46 / 88%); color: #fff1bc; font-size: 15px; font-weight: 800; }
 .palace-fortune-content { position: absolute; z-index: 1; top: 35%; right: 16%; bottom: 17%; left: 16%; display: grid; align-content: center; gap: 8px; padding: 13px 14px; border: 2px solid #d8b96b; background: linear-gradient(150deg, #fff9e8, #e8d198); box-shadow: inset 0 0 0 4px rgb(255 246 213 / 74%); text-align: center; animation: palace-fortune-reveal 240ms ease-out both; }
 .palace-fortune-content p { margin: 0; }
