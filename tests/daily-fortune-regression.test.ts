@@ -21,6 +21,17 @@ test("기존 로그인 사용자는 saju_results의 chart만으로 오늘 운세
   assert.match(dailyRoute, /ensureDailyFortune\(user\.id\)/);
 });
 
+test("Cron은 새 프로필과 기존 saju_results 사용자를 합쳐 중복 없이 당일 운세를 미리 만든다", () => {
+  const prepare = server.slice(server.indexOf("export async function prepareDailyFortunes"));
+  assert.match(prepare, /from\("user_saju_profiles"\)[\s\S]*select\("user_id/);
+  assert.match(prepare, /from\("saju_results"\)[\s\S]*select\("user_id/);
+  assert.match(prepare, /new Set(?:<string>)?\([\s\S]*profile\.user_id/, "두 목록의 같은 사용자를 한 번만 처리할 집합이 필요합니다");
+  assert.match(prepare, /profileUserIds\.has\(savedResult\.user_id\)\) continue/);
+  assert.match(prepare, /for \(const savedResult of savedResults \|\| \[\]\)/);
+  assert.match(prepare, /from\("daily_fortunes"\)[\s\S]*\.eq\("user_id", savedResult\.user_id\)[\s\S]*\.eq\("fortune_date", date\)/);
+  assert.match(prepare, /ensureDailyFortune\(savedResult\.user_id, date\)/);
+});
+
 test("오전 9시 전에도 로그인 사용자는 오늘 운세 준비·조회 API를 사용할 수 있다", () => {
   const userFacingSources = `${dailyRoute}\n${profileRoute}\n${server}`;
   assert.doesNotMatch(userFacingSources, /getHours\(\)[\s\S]{0,100}(?:<|<=)\s*9/);

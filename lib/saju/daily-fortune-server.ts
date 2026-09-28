@@ -6,6 +6,7 @@ import { koreaDate } from "./interpretation";
 type ProfileRow = { user_id: string; chart: unknown; updated_at: string };
 type FortuneRow = { content: unknown; source_profile_updated_at: string };
 type SavedResultRow = { chart: unknown; created_at: string };
+type SavedResultUserRow = { user_id: string };
 
 export class DailyFortuneServerError extends Error {
   constructor(message: string, readonly status = 503) {
@@ -103,6 +104,8 @@ export async function prepareDailyFortunes(date = koreaDate()): Promise<{ prepar
   const admin = dailyFortuneAdmin();
   const { data, error } = await admin.from("user_saju_profiles").select("user_id,updated_at").limit(500);
   if (error) throw new DailyFortuneServerError("오늘의 운세 대상 목록을 불러오지 못했어요.");
+  const { data: savedResults, error: savedResultsError } = await admin.from("saju_results").select("user_id").limit(500).returns<SavedResultUserRow[]>();
+  if (savedResultsError) throw new DailyFortuneServerError("기존 계정의 사주 정보를 불러오지 못했어요.");
   let prepared = 0;
   let skipped = 0;
   let failed = 0;
@@ -114,6 +117,22 @@ export async function prepareDailyFortunes(date = koreaDate()): Promise<{ prepar
       const existing = before.data;
       if (existing && existing.source_profile_updated_at === profile.updated_at && isDailyFortune(existing.content)) skipped++;
       else if (await ensureDailyFortune(profile.user_id, date)) prepared++;
+    } catch {
+      failed++;
+    }
+  }
+
+  const profileUserIds = new Set((data || []).map((profile) => profile.user_id));
+  for (const savedResult of savedResults || []) {
+    if (profileUserIds.has(savedResult.user_id)) continue;
+    try {
+      const before = await admin.from("daily_fortunes").select("content")
+        .eq("user_id", savedResult.user_id).eq("fortune_date", date).maybeSingle<Pick<FortuneRow, "content">>();
+      if (before.error) throw new DailyFortuneServerError("기존 오늘의 운세를 확인하지 못했어요.");
+      const fortune = await ensureDailyFortune(savedResult.user_id, date);
+      if (!fortune) throw new DailyFortuneServerError("기존 계정의 기본 사주 정보를 확인하지 못했어요.");
+      if (before.data && isDailyFortune(before.data.content) && before.data.content.date === date) skipped++;
+      else prepared++;
     } catch {
       failed++;
     }
