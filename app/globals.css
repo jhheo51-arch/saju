@@ -652,6 +652,125 @@ button:disabled {
   font-size: 20px;
 }
 
+.palace-fortune {
+  margin-top: 14px;
+  padding: clamp(20px, 4vw, 32px);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--palace-yellow);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgb(37 43 41 / 9%);
+  text-align: center;
+}
+
+.palace-fortune > .card-index {
+  margin: 0 0 10px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.palace-door-button {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 360px);
+  min-height: 44px;
+  margin: 0 auto;
+  padding: 14px;
+  border: 0 !important;
+  color: var(--palace-black) !important;
+  background: transparent !important;
+  font-family: "Noto Serif KR", "Nanum Myeongjo", Batang, serif;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.palace-door-button:hover,
+.palace-door-button:focus-visible {
+  background: color-mix(in srgb, var(--palace-yellow) 14%, transparent) !important;
+}
+
+.palace-door-button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.palace-door-art {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(100%, 280px);
+  height: 154px;
+  overflow: hidden;
+  border: 6px solid var(--palace-yellow);
+  border-bottom-width: 10px;
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(180deg, #f4dfab, var(--palace-yellow));
+}
+
+.palace-door-art i {
+  display: block;
+  border: 1px solid color-mix(in srgb, var(--palace-yellow) 45%, var(--palace-black));
+  background:
+    linear-gradient(90deg, transparent 48%, color-mix(in srgb, var(--palace-yellow) 54%, var(--palace-black)) 48% 52%, transparent 52%),
+    linear-gradient(0deg, transparent 48%, color-mix(in srgb, var(--palace-yellow) 54%, var(--palace-black)) 48% 52%, transparent 52%),
+    linear-gradient(135deg, var(--palace-red), var(--palace-seokganju));
+  box-shadow: inset 0 0 0 7px color-mix(in srgb, var(--palace-yellow) 24%, transparent);
+  transform-origin: left center;
+  transition: transform 320ms ease-out, opacity 220ms ease-out;
+}
+
+.palace-door-art i:last-child {
+  transform-origin: right center;
+}
+
+.palace-door-button.is-open .palace-door-art i:first-child {
+  transform: translateX(-84%) rotateY(16deg);
+  opacity: .78;
+}
+
+.palace-door-button.is-open .palace-door-art i:last-child {
+  transform: translateX(84%) rotateY(-16deg);
+  opacity: .78;
+}
+
+.palace-fortune-content {
+  max-width: 620px;
+  margin: 16px auto 0;
+  padding: 20px;
+  border-top: 2px solid var(--palace-yellow);
+  background: color-mix(in srgb, var(--palace-yellow) 8%, var(--surface));
+  text-align: left;
+}
+
+.palace-fortune-content h2 {
+  margin: 8px 0;
+  color: var(--palace-black);
+  font-family: "Noto Serif KR", "Nanum Myeongjo", Batang, serif;
+}
+
+.palace-fortune-content p {
+  line-height: 1.7;
+}
+
+.palace-fortune-content small,
+.fortune-color {
+  color: var(--muted);
+}
+
+.fortune-color {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+}
+
+.fortune-color i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
 .term-meaning {
   display: block;
   margin: 8px 0 18px;
@@ -732,6 +851,10 @@ button:disabled {
 
   .pillars {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .palace-door-art {
+    height: 132px;
   }
 
 }
