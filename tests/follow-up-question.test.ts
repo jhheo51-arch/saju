@@ -282,34 +282,20 @@ test("시기 질문은 모델의 확정 날짜를 버리고 행동의 임의 시
   });
 });
 
-test("화면은 05 질문 영역과 입력·상태·답변·계정 저장 흐름을 갖춘다", () => {
-  const section = source.match(/<section className="preview question-preview"[\s\S]*?<\/section>}/)?.[0];
-  const askQuestion = source.match(/async function askQuestion[\s\S]*?\r?\n  }\r?\n\r?\n  function handleSubmit/)?.[0];
-  assert.ok(section, "05 질문 영역이 있어야 합니다");
-  assert.match(section, /section-step">05</);
-  assert.match(section, /궁금한 점 답변/);
-  assert.match(section, /<textarea[\s\S]*?maxLength=\{200}/);
-  const textarea = section.match(/<textarea[\s\S]*?\/>/)?.[0] ?? "";
-  assert.match(textarea, /aria-describedby="saju-question-count"/);
-  assert.doesNotMatch(textarea, /saju-question-help/);
-  assert.doesNotMatch(section, /질문은 답변을 만들기 위해 Gemini에 전달/);
-  assert.doesNotMatch(section, /id="saju-question-help"/);
-  assert.match(section, /questionLoading.*답변을 만들고 있어요/);
-  assert.match(section, /questionError.*role="alert"/);
-  assert.match(section, /questionAnswer\.basis/);
-  assert.match(section, /questionAnswer\.focus/);
-  assert.match(section, /questionAnswer\.criteria/);
-  assert.match(section, /questionAnswer\.caution/);
-  assert.match(section, /이 답을 읽은 단서/);
-  assert.match(section, /className="question-answer-basis-text"/);
-  assert.match(section, /questionAnswer\.answer/);
-  assert.match(section, /questionAnswer\.action/);
-  assert.ok(askQuestion, "질문 전송 함수가 있어야 합니다");
-  assert.match(askQuestion, /fetch\("\/api\/question"/);
-  assert.match(askQuestion, /if \(saveQuestionAnswer\)/);
-  assert.match(askQuestion, /updateAccountResult\(client, user\.id, result\.id/);
-  assert.match(askQuestion, /saveAccountResult\(client, user\.id/);
-  assert.match(section, /type="checkbox"[\s\S]*?질문 원문은 저장하지 않아요/);
-  assert.match(askQuestion, /setResult\(nextResult\)/);
-  assert.match(askQuestion, /답변은 만들었지만 계정에 저장하지 못했어요/);
+test("화면에는 궁금한 점 입력·답변·클라이언트 질문 호출 상태가 남아 있지 않다", () => {
+  for (const forbidden of [
+    /question-preview/,
+    /궁금한 점 답변/,
+    /<textarea/,
+    /askQuestion/,
+    /\/api\/question/,
+    /questionLoading/,
+    /questionError/,
+    /saveQuestionAnswer/,
+    /setQuestion\(/,
+    /questionAnswer/,
+    /saju-question/,
+  ]) {
+    assert.doesNotMatch(source, forbidden);
+  }
 });
