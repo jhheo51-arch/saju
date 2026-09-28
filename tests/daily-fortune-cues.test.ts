@@ -47,6 +47,17 @@ test("열린 오늘 운세는 무대와 문 그림 모두에 열린 상태를 �
   assert.match(css, /\.palace-door-stage\.is-open \.palace-door-frame i:last-child,\s*\.palace-door-art\.is-open \.palace-door-frame i:last-child\s*\{[^}]*transform:/);
 });
 
+test("열린 문은 안쪽 운세를 가리지 않도록 배경과 중앙 이음선을 숨기며 비율을 유지한다", () => {
+  const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.palace-door-stage\s*\{[^}]*width:\s*min\(100%,\s*560px\);[^}]*aspect-ratio:\s*5\s*\/\s*4;/);
+  assert.match(css, /\.palace-door-stage\.is-open \.palace-door-art,\s*\.palace-door-art\.is-open\s*\{[^}]*background:\s*transparent;/);
+  assert.match(css, /\.palace-door-stage\.is-open \.palace-door-frame,\s*\.palace-door-art\.is-open \.palace-door-frame\s*\{[^}]*background:\s*transparent;/);
+  assert.match(css, /\.palace-door-stage\.is-open \.palace-door-frame::before,\s*\.palace-door-art\.is-open \.palace-door-frame::before\s*\{[^}]*opacity:\s*0;/);
+  assert.match(source, /<div className=\{`palace-door-stage\$\{dailyDoorOpened \? " is-open" : ""\}`\}>[\s\S]*?<\/button>\s*\{dailyDoorOpened && <div id="daily-palace-fortune" className="palace-fortune-content">/);
+});
+
 test("궁궐 문 양쪽은 지정한 먹빛 비취 원화를 서로 반대 위치로 사용한다", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   const inkJade = new URL("../public/palace-door-ink-jade-v01.png", import.meta.url);
