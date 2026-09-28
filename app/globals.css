@@ -1942,19 +1942,30 @@ button:disabled {
 }
 
 .palace-fortune > .card-index { margin: 0 0 10px; color: var(--primary); font-size: 13px; font-weight: 800; }
-.palace-door-button { display: grid; justify-items: center; gap: 12px; width: min(100%, 360px); min-height: 44px; margin: 0 auto; padding: 14px; border: 0 !important; color: var(--palace-black) !important; background: transparent !important; font-family: "Noto Serif KR", "Nanum Myeongjo", Batang, serif; font-size: 17px; font-weight: 800; }
-.palace-door-button:hover, .palace-door-button:focus-visible { background: color-mix(in srgb, var(--palace-yellow) 14%, transparent) !important; }
-.palace-door-button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
-.palace-door-art { display: grid; grid-template-columns: 1fr 1fr; width: min(100%, 280px); height: 154px; overflow: hidden; border: 6px solid var(--palace-yellow); border-bottom-width: 10px; border-radius: 8px 8px 2px 2px; background: linear-gradient(180deg, #f4dfab, var(--palace-yellow)); }
-.palace-door-art i { display: block; border: 1px solid color-mix(in srgb, var(--palace-yellow) 45%, var(--palace-black)); background: linear-gradient(90deg, transparent 48%, color-mix(in srgb, var(--palace-yellow) 54%, var(--palace-black)) 48% 52%, transparent 52%), linear-gradient(0deg, transparent 48%, color-mix(in srgb, var(--palace-yellow) 54%, var(--palace-black)) 48% 52%, transparent 52%), linear-gradient(135deg, var(--palace-red), var(--palace-seokganju)); box-shadow: inset 0 0 0 7px color-mix(in srgb, var(--palace-yellow) 24%, transparent); transform-origin: left center; transition: transform 320ms ease-out, opacity 220ms ease-out; }
-.palace-door-art i:last-child { transform-origin: right center; }
-.palace-door-button.is-open .palace-door-art i:first-child { transform: translateX(-84%) rotateY(16deg); opacity: .78; }
-.palace-door-button.is-open .palace-door-art i:last-child { transform: translateX(84%) rotateY(-16deg); opacity: .78; }
-.palace-fortune-content { max-width: 620px; margin: 16px auto 0; padding: 20px; border-top: 2px solid var(--palace-yellow); background: color-mix(in srgb, var(--palace-yellow) 8%, var(--surface)); text-align: left; }
-.palace-fortune-content h2 { margin: 8px 0; color: var(--palace-black); font-family: "Noto Serif KR", "Nanum Myeongjo", Batang, serif; }
-.palace-fortune-content p { line-height: 1.7; }
-.fortune-color { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 14px; }
-.fortune-color i { width: 14px; height: 14px; border-radius: 50%; }
+.palace-door-stage { position: relative; width: min(100%, 420px); height: 286px; margin: 0 auto; }
+.palace-door-button { position: relative; z-index: 2; display: block; width: 100%; height: 100%; min-height: 44px; margin: 0; padding: 0; border: 0 !important; color: var(--palace-black) !important; background: transparent !important; font-family: "Noto Serif KR", "Nanum Myeongjo", Batang, serif; cursor: pointer; }
+.palace-door-button:hover .palace-door-art, .palace-door-button:focus-visible .palace-door-art { filter: brightness(1.04); }
+.palace-door-button:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 12px; }
+.palace-door-art { position: absolute; inset: 16px 18px 36px; display: block; overflow: hidden; border: 8px solid #c69a4c; border-bottom-width: 12px; border-radius: 12px 12px 5px 5px; background: linear-gradient(180deg, #382719 0 14%, #b88b44 14% 17%, #f4dfab 17% 100%); box-shadow: 0 12px 18px rgb(66 44 22 / 19%), inset 0 0 0 2px #fff0c9; transition: filter 180ms ease-out; }
+.palace-door-eaves { position: absolute; z-index: 4; top: 9px; left: -9%; width: 118%; height: 38px; clip-path: polygon(5% 0, 95% 0, 100% 42%, 93% 42%, 87% 100%, 13% 100%, 7% 42%, 0 42%); background: linear-gradient(180deg, #482d1e 0 36%, #8a4832 37% 62%, #d5a34e 63% 78%, #583722 79%); box-shadow: 0 4px 0 #2b2018; }
+.palace-door-sign { position: absolute; z-index: 5; top: 28px; left: 50%; min-width: 96px; padding: 4px 11px; transform: translateX(-50%); border: 1px solid #e9c66d; background: #382719; color: #f8e6ad; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+.palace-door-frame { position: absolute; inset: 58px 15px 13px; display: grid; grid-template-columns: 1fr 1fr; border: 6px solid #8a5738; background: radial-gradient(ellipse at 50% 95%, #4a6b50 0 22%, #273b35 65%, #172923 100%); box-shadow: inset 0 0 0 3px #d1a751; perspective: 800px; }
+.palace-door-frame::before { position: absolute; z-index: 2; top: 0; bottom: 0; left: 50%; width: 4px; transform: translateX(-50%); background: #d4aa51; content: ""; }
+.palace-door-frame i { position: relative; z-index: 3; display: block; overflow: hidden; border: 1px solid #3c281d; background: linear-gradient(90deg, transparent 48%, rgb(229 190 102 / 55%) 48% 52%, transparent 52%), linear-gradient(0deg, transparent 48%, rgb(229 190 102 / 55%) 48% 52%, transparent 52%), linear-gradient(135deg, #9a4c36, #6e3328); box-shadow: inset 0 0 0 8px #6a3628, inset 0 0 0 11px #c99c49; transform-origin: left center; transition: transform 420ms cubic-bezier(.2, .78, .2, 1), opacity 240ms ease-out; }
+.palace-door-frame i:last-child { transform-origin: right center; }
+.palace-door-frame i b { position: absolute; top: 50%; width: 12px; height: 12px; transform: translateY(-50%); border: 2px solid #5c3a1b; border-radius: 50%; background: #e6bd59; box-shadow: 0 1px 0 #fff1aa; }
+.palace-door-frame i b:first-child { right: 12px; }
+.palace-door-frame i:last-child b:first-child { right: auto; left: 12px; }
+.palace-door-frame i b:last-child { display: none; }
+.palace-door-stage.is-open .palace-door-frame i:first-child { transform: translateX(-72%) rotateY(22deg); opacity: .88; }
+.palace-door-stage.is-open .palace-door-frame i:last-child { transform: translateX(72%) rotateY(-22deg); opacity: .88; }
+.palace-door-prompt { position: absolute; z-index: 6; right: 0; bottom: 0; left: 0; color: var(--palace-noerok); font-size: 15px; font-weight: 800; }
+.palace-fortune-content { position: absolute; z-index: 1; top: 89px; right: 44px; bottom: 49px; left: 44px; display: grid; align-content: center; gap: 10px; padding: 16px 18px; border: 2px solid #d8b96b; background: linear-gradient(150deg, #fff9e8, #e8d198); box-shadow: inset 0 0 0 4px rgb(255 246 213 / 74%); text-align: center; animation: palace-fortune-reveal 240ms ease-out both; }
+.palace-fortune-content p { margin: 0; }
+.fortune-color { display: inline-flex; align-items: center; justify-self: center; gap: 7px; color: #5d4b31; font-size: 13px; font-weight: 700; }
+.fortune-color i { width: 12px; height: 12px; border: 1px solid rgb(45 35 20 / 24%); border-radius: 50%; }
+.palace-fortune-line { color: var(--palace-black); font-family: "Noto Serif KR", "Nanum Myeongjo", Batang, serif; font-size: clamp(15px, 2.5vw, 18px); font-weight: 800; line-height: 1.55; }
+@keyframes palace-fortune-reveal { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 
 @media (max-width: 680px) {
   .avatar-section-header {
@@ -2258,5 +2269,6 @@ button:disabled {
   *::after {
     scroll-behavior: auto !important;
     transition: none !important;
+    animation: none !important;
   }
 }

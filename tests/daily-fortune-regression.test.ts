@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { calculate } from "../lib/saju/chart";
-import { createDailyFortune, isDailyFortune } from "../lib/saju/daily-fortune";
+import { createDailyFortune, dailyFortuneRecommendation, isDailyFortune } from "../lib/saju/daily-fortune";
 
 function source(path: string) {
   return readFileSync(new URL(path, import.meta.url), "utf8");
@@ -53,6 +53,58 @@ test("준비·저장되는 오늘 운세에는 색상과 추천 숫자가 있고
   assert.match(form, /dailyFortune\.color\.hex/);
   assert.match(form, /dailyFortune\.color\.name/);
   assert.match(form, /dailyFortune\.number/);
+});
+
+test("새 궁궐 추천은 같은 사주·날짜에는 고정되고, 연속 날짜에는 색 또는 숫자가 바뀐다", () => {
+  const chart = calculate({ date: "2005-12-23", time: "08:37", calendar: "solar", topic: "general" });
+  const first = dailyFortuneRecommendation(chart, "2026-09-28");
+  const repeated = dailyFortuneRecommendation(chart, "2026-09-28");
+  const nextDay = dailyFortuneRecommendation(chart, "2026-09-29");
+
+  assert.deepEqual(repeated, first, "같은 사주와 날짜는 저장 전후에도 같은 추천이어야 합니다.");
+  assert.notDeepEqual(
+    { color: nextDay.color.hex, number: nextDay.number },
+    { color: first.color.hex, number: first.number },
+    "날짜 순환은 다음 날 추천 색 또는 숫자에 반영되어야 합니다.",
+  );
+});
+
+test("오행 분포가 다른 사주는 같은 날짜에도 다른 추천을 받을 수 있다", () => {
+  const waterMetalHeavy = calculate({ date: "2005-12-23", time: "08:37", calendar: "solar", topic: "general" });
+  const fireHeavy = calculate({ date: "1990-01-01", time: "12:00", calendar: "solar", topic: "general" });
+  const date = "2026-09-28";
+  const first = dailyFortuneRecommendation(waterMetalHeavy, date);
+  const second = dailyFortuneRecommendation(fireHeavy, date);
+
+  assert.notDeepEqual(waterMetalHeavy.elements, fireHeavy.elements, "검증용 사주는 서로 다른 오행 분포여야 합니다.");
+  assert.notDeepEqual(
+    { element: first.element, color: first.color.hex, number: first.number },
+    { element: second.element, color: second.color.hex, number: second.number },
+    "같은 날짜라도 사주 오행 분포가 다르면 추천도 달라질 수 있어야 합니다.",
+  );
+});
+
+test("식별값이 없는 이전 저장 운세는 새 궁궐 추천으로 갱신 대상이 된다", () => {
+  const chart = calculate({ date: "2005-12-23", time: "08:37", calendar: "solar", topic: "general" });
+  const current = createDailyFortune(chart, "2026-09-28");
+  const legacyWithoutScheme = { ...current } as Record<string, unknown>;
+  delete legacyWithoutScheme.scheme;
+  const legacyScheme = { ...current, scheme: "palace-door-v1" };
+
+  assert.equal(isDailyFortune(current), true);
+  assert.equal(isDailyFortune(legacyWithoutScheme), false, "식별값 없는 이전 행을 그대로 재사용하면 안 됩니다.");
+  assert.equal(isDailyFortune(legacyScheme), false, "이전 규칙 식별값의 행은 새 추천으로 갱신해야 합니다.");
+});
+
+test("열린 궁궐 문 안에는 색·숫자와 한 줄 운세만 보이고, 행동 문구는 바깥에 중복하지 않는다", () => {
+  const palaceSection = form.match(/<section className="palace-fortune"[\s\S]*?<\/section>/)?.[0];
+
+  assert.ok(palaceSection, "오늘의 운세를 담는 궁궐 영역이 필요합니다.");
+  assert.match(palaceSection, /dailyDoorOpened && <div id="daily-palace-fortune" className="palace-fortune-content">/);
+  assert.match(palaceSection, /dailyFortune\.color\.name[\s\S]*dailyFortune\.number/);
+  assert.match(palaceSection, /className="palace-fortune-line">\{dailyFortune\.body\}<\/p>/);
+  assert.equal((palaceSection.match(/dailyFortune\.body/g) || []).length, 1, "운세 본문은 문 안에서 한 번만 표시합니다.");
+  assert.doesNotMatch(palaceSection, /dailyFortune\.action/, "오늘의 행동 문구를 문 안팎에 중복 표시하지 않습니다.");
 });
 
 test("궁궐 문은 기존 오늘·이번 주 카드 흐름을 대체하거나 스크롤 버튼으로 바꾸지 않는다", () => {

@@ -768,16 +768,20 @@ export default function SajuForm() {
           {dailyFortuneError && <p className="account-error" role="alert">{dailyFortuneError}</p>}
           {dailyFortune && dailyDoorVisible && <>
             <p className="card-index">오늘의 운세 · {dailyFortune.date}</p>
-            <button type="button" className={`palace-door-button${dailyDoorOpened ? " is-open" : ""}`} aria-expanded={dailyDoorOpened} aria-controls="daily-palace-fortune" onClick={openDailyDoor}>
-              <span className="palace-door-art" aria-hidden="true"><i /><i /></span>
-              <span>{dailyDoorOpened ? "궁궐 문이 열렸어요" : "오늘의 운세 보기"}</span>
-            </button>
-            {dailyDoorOpened && <div id="daily-palace-fortune" className="palace-fortune-content">
+            <div className={`palace-door-stage${dailyDoorOpened ? " is-open" : ""}`}>
+              <button type="button" className="palace-door-button" aria-label={dailyDoorOpened ? "열린 궁궐 문 안의 오늘의 운세" : "궁궐 문을 열어 오늘의 운세 보기"} aria-expanded={dailyDoorOpened} aria-controls="daily-palace-fortune" onClick={openDailyDoor}>
+                <span className="palace-door-art" aria-hidden="true">
+                  <span className="palace-door-eaves" />
+                  <span className="palace-door-sign">오늘의 기운</span>
+                  <span className="palace-door-frame"><i><b /><b /></i><i><b /><b /></i></span>
+                </span>
+                {!dailyDoorOpened && <span className="palace-door-prompt">문을 열어 오늘의 운세 보기</span>}
+              </button>
+              {dailyDoorOpened && <div id="daily-palace-fortune" className="palace-fortune-content">
               <p className="fortune-color"><i style={{ backgroundColor: dailyFortune.color.hex }} aria-hidden="true" />오늘의 색 · {dailyFortune.color.name} / 숫자 · {dailyFortune.number}</p>
-              <h2 ref={dailyFortuneTitleRef} tabIndex={-1}>{dailyFortune.headline}</h2>
-              <p>{dailyFortune.body}</p>
-              <p><strong>오늘의 한 걸음</strong> · {dailyFortune.action}</p>
-            </div>}
+                <p ref={dailyFortuneTitleRef} tabIndex={-1} className="palace-fortune-line">{dailyFortune.body}</p>
+              </div>}
+            </div>
           </>}
         </section>}
         {user && result && (<>
