@@ -60,7 +60,7 @@ async function loadDailyFortuneProfile(admin: SupabaseClient, userId: string): P
   // 오늘 운세 기능 전부터 저장한 해석은 이미 원본 생년월일·시간 없이 계산된 차트만 보관한다.
   // 그 차트를 기준표로 한 번 옮겨, 기존 로그인 사용자도 새 운세를 바로 받을 수 있게 한다.
   const { data: savedResult, error: savedResultError } = await admin.from("saju_results")
-    .select("chart,created_at").eq("user_id", userId).maybeSingle<SavedResultRow>();
+    .select("chart,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle<SavedResultRow>();
   if (savedResultError) throw new DailyFortuneServerError("계정의 저장된 사주 정보를 불러오지 못했어요.");
   if (!savedResult) return null;
   if (!isChart(savedResult.chart)) throw new DailyFortuneServerError("계정의 저장된 사주 정보를 확인하지 못했어요.");

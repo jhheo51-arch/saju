@@ -1,0 +1,4 @@
+method,reference_fidelity,editability,exact_layout_control,maintainability,accessibility,assessment_basis
+Data measured SVG,95,60,100,85,95,"600x296 measured coordinates; local HTML/SVG"
+Figma FigJam,60,100,55,75,85,"Mermaid auto-layout; editable FigJam shapes"
+GitHub diagram-maker,75,70,90,90,90,"Standalone semantic SVG; no runtime dependency"

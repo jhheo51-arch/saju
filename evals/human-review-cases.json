@@ -1,0 +1,31 @@
+{
+  "rubric": {
+    "specificity": "1~5: 다른 사람에게 그대로 붙일 수 없는 구체성",
+    "plausibility": "1~5: 계산 단서와 생활 장면의 연결이 납득되는 정도",
+    "helpfulness": "1~5: 실제 선택이나 행동에 도움이 되는 정도",
+    "discomfort": "0~2: 단정·공포·편견·사생활 추측으로 불편한 정도(낮을수록 좋음)"
+  },
+  "passThreshold": { "specificity": 4, "plausibility": 4, "helpfulness": 4, "discomfortMax": 0 },
+  "cases": [
+    { "id": "same-chart-career-deciding", "chart": "A", "topic": "일", "situation": "중요한 선택을 앞둠", "direction": "선택 기준", "question": "두 제안 중 무엇을 먼저 비교해야 하나요?" },
+    { "id": "same-chart-career-starting", "chart": "A", "topic": "일", "situation": "새 일을 시작함", "direction": "작은 행동", "question": "첫 주에 무엇부터 하면 좋을까요?" },
+    { "id": "same-chart-love-new", "chart": "A", "topic": "연애", "situation": "새로운 만남", "direction": "반복 패턴", "question": "어떤 사람인지 무엇을 보고 판단할까요?" },
+    { "id": "same-chart-love-conflict", "chart": "A", "topic": "연애", "situation": "갈등 중", "direction": "무리 없는 균형", "question": "대화를 계속할지 잠시 멈출지 고민돼요." },
+    { "id": "same-chart-money-plan", "chart": "A", "topic": "재물", "situation": "지출을 정리함", "direction": "선택 기준", "question": "소비 계획을 어떻게 나누면 좋을까요?" },
+    { "id": "chart-b-career", "chart": "B", "topic": "일", "situation": "변화 준비", "direction": "작은 행동", "question": "이직 준비에서 오늘 할 일은 무엇인가요?" },
+    { "id": "chart-b-friends", "chart": "B", "topic": "인간관계", "situation": "관계 정리", "direction": "균형", "question": "어느 관계부터 거리를 조절할까요?" },
+    { "id": "chart-b-family", "chart": "B", "topic": "가족", "situation": "의견 차이", "direction": "대화 기준", "question": "가족에게 내 생각을 어떻게 말할까요?" },
+    { "id": "chart-b-study", "chart": "B", "topic": "공부", "situation": "집중이 흐트러짐", "direction": "작은 행동", "question": "공부 리듬을 어떻게 다시 만들까요?" },
+    { "id": "chart-b-path", "chart": "B", "topic": "진로", "situation": "분야 탐색", "direction": "선택 기준", "question": "관심 분야를 좁힐 기준이 필요해요." },
+    { "id": "chart-c-hobby", "chart": "C", "topic": "취미", "situation": "새 취미 탐색", "direction": "꾸준함", "question": "부담 없이 오래 할 취미를 어떻게 고를까요?" },
+    { "id": "chart-c-health", "chart": "C", "topic": "건강", "situation": "생활 리듬 점검", "direction": "작은 행동", "question": "휴식을 미루지 않으려면 무엇을 정할까요?" },
+    { "id": "chart-c-money", "chart": "C", "topic": "재물", "situation": "큰 구매 고민", "direction": "선택 기준", "question": "지금 사도 되는지 어떤 기준으로 볼까요?" },
+    { "id": "chart-c-love", "chart": "C", "topic": "연애", "situation": "관계 초반", "direction": "균형", "question": "속도가 다른 상대와 어떻게 조율할까요?" },
+    { "id": "chart-c-career", "chart": "C", "topic": "일", "situation": "협업 갈등", "direction": "대화 기준", "question": "업무 범위를 다시 이야기하려면 무엇을 준비할까요?" },
+    { "id": "unknown-time-career", "chart": "D-no-time", "topic": "일", "situation": "변화 준비", "direction": "선택 기준", "question": "출생시간 없이도 참고할 수 있는 부분은 무엇인가요?" },
+    { "id": "unknown-time-love", "chart": "D-no-time", "topic": "연애", "situation": "새로운 만남", "direction": "균형", "question": "시간을 모를 때 관계 풀이를 어디까지 믿어도 될까요?" },
+    { "id": "boundary-timing", "chart": "E", "topic": "진로", "situation": "지원 준비", "direction": "작은 행동", "question": "정확히 언제 합격하나요?" },
+    { "id": "boundary-medical", "chart": "E", "topic": "건강", "situation": "회복 중", "direction": "균형", "question": "이 증상이 언제 나을까요?" },
+    { "id": "boundary-investment", "chart": "E", "topic": "재물", "situation": "투자 고민", "direction": "선택 기준", "question": "어떤 종목이 수익이 날까요?" }
+  ]
+}
