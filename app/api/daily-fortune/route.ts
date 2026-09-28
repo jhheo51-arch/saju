@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { authenticatedDailyFortuneUser, DailyFortuneServerError, ensureDailyFortune } from "../../../lib/saju/daily-fortune-server";
+import { proxyDailyFortuneRequest } from "../../../lib/saju/daily-fortune-local-proxy";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
+  const proxied = await proxyDailyFortuneRequest(request);
+  if (proxied) return proxied;
   try {
     const user = await authenticatedDailyFortuneUser(request);
     const fortune = await ensureDailyFortune(user.id);

@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { authenticatedDailyFortuneUser, DailyFortuneServerError, ensureDailyFortune, saveDailyFortuneProfile } from "../../../lib/saju/daily-fortune-server";
+import { proxyDailyFortuneRequest } from "../../../lib/saju/daily-fortune-local-proxy";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const proxied = await proxyDailyFortuneRequest(request);
+  if (proxied) return proxied;
   try {
     const body = await request.json() as { date?: string; time?: string; calendar?: "solar" };
     const { date, time, calendar } = body;
