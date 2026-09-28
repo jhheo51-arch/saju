@@ -58,3 +58,4 @@ Spec을 만들면 아래 목록에 파일명을 추가합니다. 구현과 검�
 - [x] `048-prepared-daily-fortune-palace-reveal.md` — 오전 9시 사용자별 사전 생성과 궁궐 문 열기 오늘 운세 설계
 - [x] `049-daily-fortune-result-flow.md` — 해석 결과의 즉시 오늘 운세와 기존 주간 날짜 선택 복구
 - [x] `050-restore-pre-september-28-features.md` — 9월 28일 이전 기존 기능 전체 복구와 오늘 운세 재결합(자동 검사·빌드 완료, 로그인 화면 확인 전)
+- [x] `051-local-supabase-runtime.md` — 로컬 Supabase 자리표시자 오류 복구와 개발용 오늘 운세 중계(자동 검사·빌드 완료, 로그인 화면 확인 전)
