@@ -29,3 +29,4 @@ Spec을 만들면 아래 목록에 파일명을 추가합니다. 구현과 검�
 - [ ] `021-structured-reading-sections.md` — 계산 근거·쉬운 뜻·생활 장면·균형·작은 행동으로 풀이 구조화
 - [ ] `047-daily-fortune-cron.md` — Vercel Cron으로 한국 날짜의 오늘 운세 준비 작업 설계
 - [ ] `048-prepared-daily-fortune-palace-reveal.md` — 오전 9시 사용자별 사전 생성과 궁궐 문 열기 오늘 운세 설계
+- [x] `049-daily-fortune-result-flow.md` — 해석 결과의 즉시 오늘 운세와 기존 주간 날짜 선택 복구(자동 검사·빌드 완료, 로그인 화면 확인 전)

@@ -12,6 +12,7 @@ import { getSajuSupabaseClient } from "../lib/saju/supabase-client";
 import { readingTopics as topics } from "../lib/saju/topics";
 import { avatarForChart, palaceStoryForChart } from "../lib/saju/avatar";
 import type { DailyFortune } from "../lib/saju/daily-fortune";
+import { weekCalendar } from "../lib/saju/solar-terms";
 
 const glossary = [...basicTerms, ...tenStars, ...stemTerms];
 
@@ -63,6 +64,7 @@ export default function SajuForm() {
   const [dailyFortuneError, setDailyFortuneError] = useState("");
   const [dailyDoorVisible, setDailyDoorVisible] = useState(false);
   const [dailyDoorOpened, setDailyDoorOpened] = useState(false);
+  const [selectedWeeklyDate, setSelectedWeeklyDate] = useState<string | null>(null);
   const pending = useRef(false);
   const avatarCardRef = useRef<HTMLElement | null>(null);
   const dailyFortuneTitleRef = useRef<HTMLHeadingElement | null>(null);
@@ -108,6 +110,8 @@ export default function SajuForm() {
     if (!user) return;
     const token = await sessionToken();
     if (!token) return;
+    setDailyFortuneLoading(true);
+    setDailyFortuneError("");
     try {
       const response = await fetch("/api/daily-profile", {
         method: "POST",
@@ -116,12 +120,16 @@ export default function SajuForm() {
       });
       const data = await response.json();
       if (!response.ok || !data.fortune) throw new ServerMessageError(typeof data.error === "string" ? data.error : "오늘의 운세를 준비하지 못했어요.");
-      setDailyFortune(data.fortune as DailyFortune);
+      const fortune = data.fortune as DailyFortune;
+      setDailyFortune(fortune);
       setDailyFortuneError("");
       setDailyDoorVisible(true);
-      setDailyDoorOpened(false);
+      setDailyDoorOpened(true);
+      window.localStorage.setItem(`daily-palace-door:${user.id}:${fortune.date}`, "opened");
     } catch (caught) {
       setDailyFortuneError(caught instanceof Error ? caught.message : "오늘의 운세를 준비하지 못했어요.");
+    } finally {
+      setDailyFortuneLoading(false);
     }
   }
 
@@ -308,6 +316,7 @@ export default function SajuForm() {
       const createdAt = new Date().toISOString();
       const next: DisplayResult = { chart: data.chart, topic: input.topic, reading: data.reading, createdAt };
       setResult(next);
+      setSelectedWeeklyDate(null);
       setHasStoredResult(false);
       setRetryInput(null);
       try {
@@ -352,6 +361,7 @@ export default function SajuForm() {
     try {
       const chart = calculate(input);
       setResult({ chart, topic: selectedTopic.value, reading: null });
+      setSelectedWeeklyDate(null);
       setRetryInput(input);
       setError("");
       void saveDailyProfile(input);
@@ -384,6 +394,12 @@ export default function SajuForm() {
   const palaceStory = result ? palaceStoryForChart(result.chart) : null;
   const today = result?.reading?.today.date || koreaDate();
   const currentWeek = koreaWeekRange(koreaDate());
+  const calendar = weekCalendar(result?.reading?.weekly?.startDate || currentWeek.startDate);
+  const thisWeekTerm = calendar.days.find((day) => day.term);
+  const hasDailyFortunes = result?.reading?.weekly?.days?.length === 7;
+  const selectedDailyFortune = hasDailyFortunes ? result?.reading?.weekly?.days?.find((day) => day.date === selectedWeeklyDate) : undefined;
+  const selectedWeekday = calendar.days.find((day) => day.date === selectedDailyFortune?.date)?.weekday;
+  const displayedDailyFortune = dailyDoorOpened ? dailyFortune : null;
   const olderReading = Boolean(result?.reading && (
     !result.reading.personality.body.includes(`${result.chart.dayMaster.korean}${result.chart.dayMaster.element}`) ||
     !result.reading.topic.body.includes(result.chart.pillars[1].korean)
@@ -402,24 +418,6 @@ export default function SajuForm() {
         {!accountConfigured && ready && <p className="account-error">Google 로그인 연결 설정이 필요해요.</p>}
         {authError && <p className="account-error" role="alert">{authError}</p>}
       </section>
-      {user && (dailyFortuneLoading || dailyFortune || dailyFortuneError) && <section className="palace-fortune" aria-live="polite" aria-busy={dailyFortuneLoading}>
-        {dailyFortuneLoading && <p>오늘의 운세를 궁궐에 준비하고 있어요.</p>}
-        {dailyFortuneError && <p className="account-error" role="alert">{dailyFortuneError}</p>}
-        {dailyFortune && dailyDoorVisible && <>
-          <p className="card-index">오늘의 운세 · {dailyFortune.date}</p>
-          <button type="button" className={`palace-door-button${dailyDoorOpened ? " is-open" : ""}`} aria-expanded={dailyDoorOpened} aria-controls="daily-palace-fortune" onClick={openDailyDoor}>
-            <span className="palace-door-art" aria-hidden="true"><i /><i /></span>
-            <span>{dailyDoorOpened ? "궁궐 문이 열렸어요" : "오늘의 운세 보기"}</span>
-          </button>
-          {dailyDoorOpened && <div id="daily-palace-fortune" className="palace-fortune-content">
-            <p className="fortune-color"><i style={{ backgroundColor: dailyFortune.color.hex }} aria-hidden="true" />오늘의 색 · {dailyFortune.color.name} / 숫자 · {dailyFortune.number}</p>
-            <h2 ref={dailyFortuneTitleRef} tabIndex={-1}>{dailyFortune.headline}</h2>
-            <p>{dailyFortune.body}</p>
-            <p><strong>오늘의 한 걸음</strong> · {dailyFortune.action}</p>
-            <small>이후에는 아래의 오늘·이번 주 운세도 함께 볼 수 있어요.</small>
-          </div>}
-        </>}
-      </section>}
       <section className="input-card" aria-labelledby="input-title">
         <div className="section-heading">
           <span className="section-step">01</span>
@@ -464,6 +462,24 @@ export default function SajuForm() {
         {error && <p className="error" role="alert">{error}</p>}
         {error && retryInput && !loading && <button type="button" className="retry-button" onClick={() => void requestReading(retryInput)}>다시 시도</button>}
         {notice && <p className="notice">{notice}</p>}
+        {result && user && (dailyFortuneLoading || dailyFortune || dailyFortuneError) && <section className="palace-fortune" aria-live="polite" aria-busy={dailyFortuneLoading}>
+          {dailyFortuneLoading && <p>오늘의 운세를 궁궐에 준비하고 있어요.</p>}
+          {dailyFortuneError && <p className="account-error" role="alert">{dailyFortuneError}</p>}
+          {dailyFortune && dailyDoorVisible && <>
+            <p className="card-index">오늘의 운세 · {dailyFortune.date}</p>
+            <button type="button" className={`palace-door-button${dailyDoorOpened ? " is-open" : ""}`} aria-expanded={dailyDoorOpened} aria-controls="daily-palace-fortune" onClick={openDailyDoor}>
+              <span className="palace-door-art" aria-hidden="true"><i /><i /></span>
+              <span>{dailyDoorOpened ? "궁궐 문이 열렸어요" : "오늘의 운세 보기"}</span>
+            </button>
+            {dailyDoorOpened && <div id="daily-palace-fortune" className="palace-fortune-content">
+              <p className="fortune-color"><i style={{ backgroundColor: dailyFortune.color.hex }} aria-hidden="true" />오늘의 색 · {dailyFortune.color.name} / 숫자 · {dailyFortune.number}</p>
+              <h2 ref={dailyFortuneTitleRef} tabIndex={-1}>{dailyFortune.headline}</h2>
+              <p>{dailyFortune.body}</p>
+              <p><strong>오늘의 한 걸음</strong> · {dailyFortune.action}</p>
+              <small>아래에서 오늘·이번 주 운세도 이어서 볼 수 있어요.</small>
+            </div>}
+          </>}
+        </section>}
         {result && (<>
           <section className="preview" aria-labelledby="preview-title" aria-busy={loading}>
             <div className="preview-header">
@@ -579,18 +595,42 @@ export default function SajuForm() {
             <div className="preview-cards today-cards">
               <section className="preview-card" aria-labelledby="today-title">
                 <p className="card-index">오늘의 운세 · {today}</p>
-                <h3 id="today-title">{result.reading ? <ExplainedText text={result.reading.today.headline} id="today-head" /> : "오늘의 운세"}</h3>
-                <p>{result.reading ? <ExplainedText text={result.reading.today.body} id="today-body" /> : "오늘 생각해 볼 점을 준비하고 있어요."}</p>
+                <h3 id="today-title">{displayedDailyFortune ? displayedDailyFortune.headline : result.reading ? <ExplainedText text={result.reading.today.headline} id="today-head" /> : "오늘의 운세"}</h3>
+                <p>{displayedDailyFortune ? displayedDailyFortune.body : result.reading ? <ExplainedText text={result.reading.today.body} id="today-body" /> : "오늘 생각해 볼 점을 준비하고 있어요."}</p>
+                {displayedDailyFortune && <>
+                  <div className="fortune-action"><strong>오늘의 한 걸음</strong><p>{displayedDailyFortune.action}</p></div>
+                  <aside className="fortune-cues" aria-label="오늘의 재미 포인트">
+                    <strong>오늘의 재미 포인트</strong>
+                    <div>
+                      <span className="fortune-cue"><i style={{ backgroundColor: displayedDailyFortune.color.hex }} aria-hidden="true" /><span>색상 <b>{displayedDailyFortune.color.name}</b></span></span>
+                      <span className="fortune-cue"><span className="fortune-number" aria-hidden="true">{displayedDailyFortune.number}</span><span>숫자 <b>{displayedDailyFortune.number}</b></span></span>
+                    </div>
+                    <small>생년월일·태어난 시간과 오늘 날짜로 준비한 가벼운 제안이에요.</small>
+                  </aside>
+                </>}
                 {!result.reading && <span className="pending-label">{loading ? "해석 중" : "해석을 다시 시도할 수 있어요"}</span>}
               </section>
               <section className="preview-card" aria-labelledby="weekly-title">
                 <p className="card-index">이번 주 운세 · {result.reading?.weekly ? `${result.reading.weekly.startDate} ~ ${result.reading.weekly.endDate}` : `${currentWeek.startDate} ~ ${currentWeek.endDate}`}</p>
-                <h3 id="weekly-title">{result.reading?.weekly ? <ExplainedText text={result.reading.weekly.headline} id="weekly-head" /> : "이번 주 운세"}</h3>
-                <p>{result.reading?.weekly
-                  ? <ExplainedText text={result.reading.weekly.body} id="weekly-body" />
-                  : result.reading
-                    ? "저장된 이전 결과에는 이번 주 풀이가 없어요. 새로 해석하면 볼 수 있어요."
-                    : "이번 주에 생각해 볼 점을 준비하고 있어요."}</p>
+                {calendar.days.length === 7 && <div className="week-calendar" aria-label="이번 주 날짜와 절기">
+                  {hasDailyFortunes && <button type="button" className="week-overview-button" aria-pressed={!selectedDailyFortune} aria-controls="weekly-reading-content" onClick={() => setSelectedWeeklyDate(null)}>한 주 전체</button>}
+                  <ol className="week-calendar-days">
+                    {calendar.days.map((day) => <li key={day.date}>
+                      {hasDailyFortunes
+                        ? <button type="button" className={`week-day-button${day.date === koreaDate() ? " is-today" : ""}`} aria-label={`${Number(day.date.slice(5, 7))}월 ${day.day}일 ${day.weekday}요일 운세 보기`} aria-pressed={selectedDailyFortune?.date === day.date} aria-controls="weekly-reading-content" onClick={() => setSelectedWeeklyDate(day.date)}>
+                            <span className="week-day-name">{day.weekday}</span><span className="week-day-date">{day.day}</span>{day.term && <span className="week-day-term">{day.term}</span>}
+                          </button>
+                        : <span className={`week-day-static${day.date === koreaDate() ? " is-today" : ""}`}><span className="week-day-name">{day.weekday}</span><span className="week-day-date">{day.day}</span>{day.term && <span className="week-day-term">{day.term}</span>}</span>}
+                    </li>)}
+                  </ol>
+                  <p className="week-calendar-note">{thisWeekTerm ? `이번 주 절기: ${thisWeekTerm.term} · ${Number(thisWeekTerm.date.slice(5, 7))}월 ${thisWeekTerm.day}일` : calendar.nextTerm ? `다음 절기: ${calendar.nextTerm.name} · ${Number(calendar.nextTerm.date.slice(5, 7))}월 ${Number(calendar.nextTerm.date.slice(-2))}일` : "절기 날짜를 확인할 수 없어요."}</p>
+                </div>}
+                <div id="weekly-reading-content" className="weekly-reading-content" aria-live="polite">
+                  <h3 id="weekly-title">{selectedDailyFortune ? `${selectedWeekday}요일 운세` : result.reading?.weekly ? <ExplainedText text={result.reading.weekly.headline} id="weekly-head" /> : "이번 주 운세"}</h3>
+                  <p>{selectedDailyFortune ? selectedDailyFortune.body : result.reading?.weekly ? <ExplainedText text={result.reading.weekly.body} id="weekly-body" /> : result.reading ? "저장된 이전 결과에는 이번 주 풀이가 없어요. 새로 해석하면 볼 수 있어요." : "이번 주에 생각해 볼 점을 준비하고 있어요."}</p>
+                  {!selectedDailyFortune && result.reading?.weekly?.action && <div className="fortune-action"><strong>이번 주의 한 걸음</strong><p>{result.reading.weekly.action}</p></div>}
+                  {result.reading?.weekly && !hasDailyFortunes && <p className="daily-fortune-upgrade">이전 결과에는 날짜별 풀이가 없어요. 새로 해석하면 월~일을 눌러 볼 수 있어요.</p>}
+                </div>
                 {!result.reading && <span className="pending-label">{loading ? "해석 중" : "해석을 다시 시도할 수 있어요"}</span>}
               </section>
             </div>
