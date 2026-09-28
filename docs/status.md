@@ -27,3 +27,5 @@ Spec을 만들면 아래 목록에 파일명을 추가합니다. 구현과 검�
 - [ ] `019-avatar-copy-and-simple-background.md` — 아바타 문장 줄바꿈과 단순한 배경
 - [x] `020-weekly-fortune-no-graph.md` — 오행 칸 그래프 제거와 이번 주 운세 추가(자동·로컬 확인, 참가자 확인 전)
 - [ ] `021-structured-reading-sections.md` — 계산 근거·쉬운 뜻·생활 장면·균형·작은 행동으로 풀이 구조화
+- [ ] `047-daily-fortune-cron.md` — Vercel Cron으로 한국 날짜의 오늘 운세 준비 작업 설계
+- [ ] `048-prepared-daily-fortune-palace-reveal.md` — 오전 9시 사용자별 사전 생성과 궁궐 문 열기 오늘 운세 설계

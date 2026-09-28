@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 const source = readFileSync(new URL("../app/saju-form.tsx", import.meta.url), "utf8");
 
 test("세션이 없는 방문은 getUser 실패로 취급하지 않고 비로그인 결과를 복원한다", () => {
-  const refresh = source.match(/async function refreshAccount\(restoreGuest: boolean\) \{([\s\S]*?)\n    \}\n\n    const \{ data: \{ subscription \} \}/)?.[1];
+  const refresh = source.match(/async function refreshAccount\(restoreGuest: boolean\) \{([\s\S]*?)\r?\n    \}\r?\n\r?\n    const \{ data: \{ subscription \} \}/)?.[1];
   assert.ok(refresh, "초기 계정 확인 흐름이 있어야 합니다");
   assert.match(refresh, /const \{ data: sessionData, error: sessionError \} = await client!\.auth\.getSession\(\)/);
   assert.match(refresh, /if \(sessionError\) sessionFailed = true;\s*else if \(sessionData\.session\) \{\s*const \{ data, error: userError \} = await client!\.auth\.getUser\(\)/);

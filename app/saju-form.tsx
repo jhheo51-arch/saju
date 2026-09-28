@@ -11,6 +11,7 @@ import { clearLatestResult, loadLatestResult, saveLatestResult } from "../lib/sa
 import { getSajuSupabaseClient } from "../lib/saju/supabase-client";
 import { readingTopics as topics } from "../lib/saju/topics";
 import { avatarForChart, palaceStoryForChart } from "../lib/saju/avatar";
+import type { DailyFortune } from "../lib/saju/daily-fortune";
 
 const glossary = [...basicTerms, ...tenStars, ...stemTerms];
 
@@ -57,9 +58,79 @@ export default function SajuForm() {
   const [retryInput, setRetryInput] = useState<SajuInput | null>(null);
   const [avatarSaving, setAvatarSaving] = useState(false);
   const [avatarSaveError, setAvatarSaveError] = useState("");
+  const [dailyFortune, setDailyFortune] = useState<DailyFortune | null>(null);
+  const [dailyFortuneLoading, setDailyFortuneLoading] = useState(false);
+  const [dailyFortuneError, setDailyFortuneError] = useState("");
+  const [dailyDoorVisible, setDailyDoorVisible] = useState(false);
+  const [dailyDoorOpened, setDailyDoorOpened] = useState(false);
   const pending = useRef(false);
   const avatarCardRef = useRef<HTMLElement | null>(null);
+  const dailyFortuneTitleRef = useRef<HTMLHeadingElement | null>(null);
   const accountClient = useRef<SupabaseClient | null>(null);
+
+  async function sessionToken() {
+    const client = accountClient.current;
+    if (!client) return null;
+    const { data, error } = await client.auth.getSession();
+    return error ? null : data.session?.access_token || null;
+  }
+
+  async function loadDailyFortune(showDoorWhenReady = false) {
+    if (!user) return;
+    const token = await sessionToken();
+    if (!token) return;
+    setDailyFortuneLoading(true);
+    setDailyFortuneError("");
+    try {
+      const response = await fetch("/api/daily-fortune", { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+      const data = await response.json();
+      if (response.status === 404) {
+        setDailyFortune(null);
+        setDailyDoorVisible(false);
+        return;
+      }
+      if (!response.ok || !data.fortune) throw new ServerMessageError(typeof data.error === "string" ? data.error : "오늘의 운세를 불러오지 못했어요.");
+      const fortune = data.fortune as DailyFortune;
+      setDailyFortune(fortune);
+      const seenKey = `daily-palace-door:${user.id}:${fortune.date}`;
+      const seen = window.sessionStorage.getItem(seenKey) === "opened";
+      setDailyDoorVisible(showDoorWhenReady || !seen);
+      setDailyDoorOpened(false);
+    } catch (caught) {
+      setDailyFortuneError(caught instanceof Error ? caught.message : "오늘의 운세를 불러오지 못했어요.");
+    } finally {
+      setDailyFortuneLoading(false);
+    }
+  }
+
+  async function saveDailyProfile(input: SajuInput) {
+    if (!user) return;
+    const token = await sessionToken();
+    if (!token) return;
+    try {
+      const response = await fetch("/api/daily-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ date: input.date, time: input.time, calendar: input.calendar }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.fortune) throw new ServerMessageError(typeof data.error === "string" ? data.error : "오늘의 운세를 준비하지 못했어요.");
+      setDailyFortune(data.fortune as DailyFortune);
+      setDailyFortuneError("");
+      setDailyDoorVisible(true);
+      setDailyDoorOpened(false);
+    } catch (caught) {
+      setDailyFortuneError(caught instanceof Error ? caught.message : "오늘의 운세를 준비하지 못했어요.");
+    }
+  }
+
+  function openDailyDoor() {
+    if (!dailyFortune || !user || dailyDoorOpened) return;
+    setDailyDoorOpened(true);
+    window.sessionStorage.setItem(`daily-palace-door:${user.id}:${dailyFortune.date}`, "opened");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.setTimeout(() => dailyFortuneTitleRef.current?.focus(), reducedMotion ? 0 : 340);
+  }
 
   async function downloadAvatar() {
     if (!avatarCardRef.current || !avatar || avatarSaving) return;
@@ -167,6 +238,16 @@ export default function SajuForm() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setDailyFortune(null);
+      setDailyFortuneError("");
+      setDailyDoorVisible(false);
+      return;
+    }
+    void loadDailyFortune();
+  }, [user?.id]);
+
   async function signInWithGoogle() {
     const client = accountClient.current;
     if (!client) {
@@ -272,6 +353,7 @@ export default function SajuForm() {
       setResult({ chart, topic: selectedTopic.value, reading: null });
       setRetryInput(input);
       setError("");
+      void saveDailyProfile(input);
       void requestReading(input);
     } catch (caught) {
       setResult(null);
@@ -319,6 +401,24 @@ export default function SajuForm() {
         {!accountConfigured && ready && <p className="account-error">Google 로그인 연결 설정이 필요해요.</p>}
         {authError && <p className="account-error" role="alert">{authError}</p>}
       </section>
+      {user && (dailyFortuneLoading || dailyFortune || dailyFortuneError) && <section className="palace-fortune" aria-live="polite" aria-busy={dailyFortuneLoading}>
+        {dailyFortuneLoading && <p>오늘의 운세를 궁궐에 준비하고 있어요.</p>}
+        {dailyFortuneError && <p className="account-error" role="alert">{dailyFortuneError}</p>}
+        {dailyFortune && dailyDoorVisible && <>
+          <p className="card-index">오늘의 운세 · {dailyFortune.date}</p>
+          <button type="button" className={`palace-door-button${dailyDoorOpened ? " is-open" : ""}`} aria-expanded={dailyDoorOpened} aria-controls="daily-palace-fortune" onClick={openDailyDoor}>
+            <span className="palace-door-art" aria-hidden="true"><i /><i /></span>
+            <span>{dailyDoorOpened ? "궁궐 문이 열렸어요" : "오늘의 운세 보기"}</span>
+          </button>
+          {dailyDoorOpened && <div id="daily-palace-fortune" className="palace-fortune-content">
+            <p className="fortune-color"><i style={{ backgroundColor: dailyFortune.color.hex }} aria-hidden="true" />오늘의 색 · {dailyFortune.color.name} / 숫자 · {dailyFortune.number}</p>
+            <h2 ref={dailyFortuneTitleRef} tabIndex={-1}>{dailyFortune.headline}</h2>
+            <p>{dailyFortune.body}</p>
+            <p><strong>오늘의 한 걸음</strong> · {dailyFortune.action}</p>
+            <small>이후에는 아래의 오늘·이번 주 운세도 함께 볼 수 있어요.</small>
+          </div>}
+        </>}
+      </section>}
       <section className="input-card" aria-labelledby="input-title">
         <div className="section-heading">
           <span className="section-step">01</span>
